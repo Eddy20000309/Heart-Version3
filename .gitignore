@@ -1,0 +1,11 @@
+# Claude Code local config (contains absolute paths)
+.claude/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
