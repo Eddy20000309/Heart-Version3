@@ -14,6 +14,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Melody ❤">
     <link href="https://fonts.googleapis.com/css2?family=Long+Cang&display=swap" rel="stylesheet">
+    <!-- Leaflet (map for the 足迹 tab) — loaded lazily but the CSS must be in <head> -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Firebase SDK (compat mode for non-bundled use) -->
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
@@ -369,17 +371,21 @@
         }
         .feed-tab {
             flex: 1;
-            padding: 8px 12px;
+            min-width: 0;
+            padding: 8px 6px;
             border: none;
             background: transparent;
             color: rgba(255, 255, 255, 0.55);
             font-family: "Long Cang", cursive;
             font-size: 16px;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.2s ease;
             outline: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .feed-tab:hover { color: rgba(255, 200, 230, 0.8); background: rgba(255, 255, 255, 0.04); }
         .feed-tab.active {
@@ -442,6 +448,153 @@
             color: rgba(255, 255, 255, 0.45);
             font-family: "Long Cang", cursive;
             font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== Map / 足迹 ===== */
+        #map-container {
+            width: 100%;
+            height: 520px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #1a1224;
+            border: 1px solid rgba(255, 180, 210, 0.18);
+            position: relative;
+        }
+        .map-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 0 4px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: "Long Cang", cursive;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        .map-toolbar .map-stats { color: rgba(255, 200, 220, 0.8); }
+        .map-toolbar button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.85);
+            font-family: "Long Cang", cursive;
+            font-size: 13px;
+            letter-spacing: 1px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .map-toolbar button:hover { background: rgba(255, 255, 255, 0.15); }
+        .map-toolbar button:disabled { opacity: 0.5; cursor: wait; }
+        /* Leaflet popup styling — match the moments theme */
+        .leaflet-popup-content-wrapper {
+            background: linear-gradient(160deg, rgba(40, 16, 50, 0.96), rgba(20, 10, 30, 0.96)) !important;
+            color: #fff !important;
+            border-radius: 12px !important;
+            border: 1px solid rgba(255, 180, 210, 0.28) !important;
+            font-family: "Long Cang", cursive !important;
+        }
+        .leaflet-popup-content { margin: 12px !important; font-size: 14px !important; letter-spacing: 1px; }
+        .leaflet-popup-tip { background: rgba(20, 10, 30, 0.96) !important; }
+        .leaflet-popup-close-button { color: rgba(255, 255, 255, 0.7) !important; }
+        .leaflet-container { background: #1a1224 !important; }
+        .leaflet-control-attribution {
+            background: rgba(20, 10, 30, 0.6) !important;
+            color: rgba(255, 255, 255, 0.5) !important;
+            font-size: 10px !important;
+        }
+        .leaflet-control-attribution a { color: rgba(255, 180, 210, 0.8) !important; }
+        .map-popup-title { color: #ffc4d8; font-size: 15px; margin-bottom: 4px; }
+        .map-popup-date { color: rgba(255, 255, 255, 0.55); font-size: 12px; margin-bottom: 4px; }
+        .map-popup-loc { color: rgba(255, 200, 220, 0.85); font-size: 12px; }
+        .map-popup-thumb {
+            width: 100%;
+            max-width: 200px;
+            margin-top: 6px;
+            border-radius: 8px;
+            display: block;
+        }
+        .map-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.45);
+            font-family: "Long Cang", cursive;
+            font-size: 15px;
+            letter-spacing: 1px;
+            line-height: 1.8;
+        }
+
+        /* ===== Drawing board / 画板 ===== */
+        .draw-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+        .draw-color {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+            padding: 0;
+        }
+        .draw-color:hover { transform: scale(1.1); }
+        .draw-color.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+        .draw-brush {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-family: "Long Cang", cursive;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .draw-brush.active { background: linear-gradient(135deg, #ff7aa5, #c14fa9); border-color: transparent; }
+        .draw-clear, .draw-undo {
+            margin-left: auto;
+            background: rgba(255, 100, 130, 0.18);
+            border: 1px solid rgba(255, 100, 130, 0.3);
+            color: #ffb0c0;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-family: "Long Cang", cursive;
+            font-size: 13px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: background 0.2s ease;
+        }
+        .draw-undo {
+            margin-left: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .draw-clear:hover { background: rgba(255, 100, 130, 0.3); }
+        .draw-undo:hover { background: rgba(255, 255, 255, 0.15); }
+        #draw-canvas {
+            display: block;
+            width: 100%;
+            height: 480px;
+            background: linear-gradient(160deg, rgba(28, 16, 40, 0.85), rgba(20, 12, 30, 0.85));
+            border-radius: 16px;
+            border: 1px solid rgba(255, 180, 210, 0.18);
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .draw-hint {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: "Long Cang", cursive;
+            font-size: 12px;
+            margin-top: 8px;
             letter-spacing: 1px;
         }
 
@@ -1941,10 +2094,14 @@
                         <button type="button" class="feed-tab" data-tab="wishes">心愿单</button>
                         <button type="button" class="feed-tab active" data-tab="moments">朋友圈</button>
                         <button type="button" class="feed-tab" data-tab="songs">歌单</button>
+                        <button type="button" class="feed-tab" data-tab="map">足迹</button>
+                        <button type="button" class="feed-tab" data-tab="draw">画板</button>
                     </div>
                     <div id="feed-pane-wishes" class="feed-pane hidden"></div>
                     <div id="feed-pane-moments" class="feed-pane"></div>
                     <div id="feed-pane-songs" class="feed-pane hidden"></div>
+                    <div id="feed-pane-map" class="feed-pane hidden"></div>
+                    <div id="feed-pane-draw" class="feed-pane hidden"></div>
                 </div>
                 <aside class="moments-sidebar-right" id="moments-sidebar-right">
                     <!-- RIGHT column: reserved for future panels (e.g. 心情温度 in Batch 2) -->
@@ -2220,6 +2377,8 @@
                                             title: data.title || '',
                                             text: data.text || '',
                                             location: data.location || '',
+                                            lat: (typeof data.lat === 'number') ? data.lat : null,
+                                            lng: (typeof data.lng === 'number') ? data.lng : null,
                                             photos: data.photos || [],
                                             likes: data.likes || [],
                                             comments: data.comments || [],
@@ -2243,7 +2402,7 @@
                 list() { return this.cached.slice(); },
                 async add(moment) {
                     if (!fbDb) throw new Error('Firebase 未连接');
-                    await fbDb.collection('moments').add({
+                    const doc = {
                         author: moment.author,
                         date: moment.date || '',
                         title: moment.title || '',
@@ -2253,7 +2412,16 @@
                         likes: [],
                         comments: [],
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    };
+                    if (typeof moment.lat === 'number' && typeof moment.lng === 'number') {
+                        doc.lat = moment.lat;
+                        doc.lng = moment.lng;
+                    }
+                    await fbDb.collection('moments').add(doc);
+                },
+                async updateLatLng(id, lat, lng) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('moments').doc(id).update({ lat, lng });
                 },
                 async toggleLike(id, who) {
                     if (!fbDb) throw new Error('Firebase 未连接');
@@ -2530,6 +2698,60 @@
                 }
             };
             songsBackend.init();
+
+            // ===== Strokes (画板) — shared canvas drawing =====
+            // Each completed stroke is one Firestore doc: { points, color, width, by, ts }
+            // points is an array of {x, y} in 0-1 normalized coords so it scales to any canvas size.
+            const strokesBackend = {
+                cached: [],
+                subscribers: [],
+                ready: false,
+                init() {
+                    if (!fbDb) return;
+                    fbAuth.onAuthStateChanged((user) => {
+                        if (!user) return;
+                        fbDb.collection('strokes')
+                            .orderBy('ts', 'asc')
+                            .limit(500)  // cap to avoid runaway loading
+                            .onSnapshot((snap) => {
+                                this.cached = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                                this.ready = true;
+                                this.subscribers.forEach(cb => { try { cb(this.cached); } catch (e) { console.error(e); } });
+                            }, err => console.warn('[strokes] listen failed', err));
+                    });
+                },
+                subscribe(cb) {
+                    this.subscribers.push(cb);
+                    if (this.ready) cb(this.cached);
+                },
+                async add({ points, color, width, by }) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('strokes').add({
+                        points, color, width, by,
+                        ts: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                },
+                async clearAll() {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    // Delete in batches of 50 (well under the 500 limit per batch)
+                    const snap = await fbDb.collection('strokes').limit(500).get();
+                    const batches = [];
+                    let batch = fbDb.batch();
+                    let count = 0;
+                    snap.forEach(doc => {
+                        batch.delete(doc.ref);
+                        count++;
+                        if (count % 50 === 0) { batches.push(batch.commit()); batch = fbDb.batch(); }
+                    });
+                    if (count % 50 !== 0) batches.push(batch.commit());
+                    await Promise.all(batches);
+                },
+                async removeOne(id) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('strokes').doc(id).delete();
+                }
+            };
+            strokesBackend.init();
 
             // Pull a BVid out of a pasted Bilibili URL (any form) or raw BVxxx string.
             // Supports: https://www.bilibili.com/video/BVxxxxxxxxxx/, b23.tv share links
@@ -3202,6 +3424,7 @@
             const viewerNameEl = document.getElementById('viewer-name');
 
             let pendingPhotos = []; // {dataUrl, name}
+            let pendingLatLng = null; // {lat, lng} captured from the 📍 button
             let pendingLocation = ''; // string set by manual input or auto-fetch
             const VIEWER_KEY = 'pourMelodyViewerAs';
             function loadViewer() {
@@ -3915,12 +4138,304 @@
                 pane.innerHTML = html;
             }
 
+            // ===== 足迹 / Map render =====
+            // Lazy-loads Leaflet on first open. Each moment with lat/lng (or geocoded
+            // location text) gets a heart-tinted marker. Click a marker → popup with
+            // title + date + thumbnail.
+            const mapState = {
+                leafletLoaded: false,
+                map: null,
+                markers: [],
+                geoCache: JSON.parse(localStorage.getItem('pourMelodyGeoCache') || '{}')
+            };
+            function saveGeoCache() {
+                try { localStorage.setItem('pourMelodyGeoCache', JSON.stringify(mapState.geoCache)); } catch (_) {}
+            }
+            function loadLeaflet() {
+                return new Promise((resolve, reject) => {
+                    if (window.L) return resolve();
+                    const s = document.createElement('script');
+                    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                    s.onload = () => resolve();
+                    s.onerror = () => reject(new Error('Leaflet load failed'));
+                    document.head.appendChild(s);
+                });
+            }
+            // Forward-geocode a location string via Nominatim (OpenStreetMap, free).
+            // Throttled at ~1 req/sec by our caller. Cached forever in localStorage.
+            async function geocodeText(text) {
+                if (!text) return null;
+                const key = text.toLowerCase().trim();
+                if (mapState.geoCache[key]) return mapState.geoCache[key];
+                try {
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(text)}`;
+                    const res = await fetch(url, { headers: { 'Accept-Language': 'zh,en' } });
+                    if (!res.ok) return null;
+                    const arr = await res.json();
+                    if (!arr.length) return null;
+                    const r = { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon) };
+                    mapState.geoCache[key] = r;
+                    saveGeoCache();
+                    return r;
+                } catch (e) {
+                    return null;
+                }
+            }
+            async function renderMap() {
+                const pane = document.getElementById('feed-pane-map');
+                if (!pane) return;
+                pane.innerHTML = `
+                    <div class="map-toolbar">
+                        <div class="map-stats" id="map-stats">加载地图…</div>
+                        <button type="button" id="map-fit-btn">居中</button>
+                    </div>
+                    <div id="map-container"></div>
+                `;
+                try {
+                    await loadLeaflet();
+                } catch (e) {
+                    pane.innerHTML = '<div class="map-empty">地图加载失败 ✿<br/>检查网络后重试</div>';
+                    return;
+                }
+                const container = document.getElementById('map-container');
+                if (mapState.map) { mapState.map.remove(); mapState.map = null; mapState.markers = []; }
+                mapState.map = L.map(container, { zoomControl: true, attributionControl: true })
+                    .setView([30, 60], 2);
+                // Dark-themed OSM tiles (Carto Dark Matter — free for low traffic)
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap · © CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(mapState.map);
+
+                // Custom heart icon
+                const heartIcon = L.divIcon({
+                    html: '<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7))">❤</div>',
+                    iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [0, -22],
+                    className: 'map-heart-icon'
+                });
+
+                const moments = (momentsBackend.cached || []).slice();
+                const withLatLng = moments.filter(m => typeof m.lat === 'number' && typeof m.lng === 'number');
+                const needGeocode = moments.filter(m => !withLatLng.includes(m) && m.location);
+
+                // Plot ones we already have coords for
+                for (const m of withLatLng) addMarker(m, heartIcon);
+                fitBoundsIfPossible();
+
+                document.getElementById('map-stats').textContent = needGeocode.length > 0
+                    ? `${withLatLng.length} 处已显示 · 正在为 ${needGeocode.length} 处定位…`
+                    : `${withLatLng.length} 处足迹 ❤`;
+
+                // Throttled forward geocoding for moments with only text location.
+                // Nominatim asks for 1 req/sec.
+                for (const m of needGeocode) {
+                    const coords = await geocodeText(m.location);
+                    if (coords) {
+                        m.lat = coords.lat; m.lng = coords.lng;
+                        addMarker(m, heartIcon);
+                        // Persist back to Firestore so next time we don't re-geocode
+                        try { await momentsBackend.updateLatLng(m.id, coords.lat, coords.lng); } catch (_) {}
+                    }
+                    await new Promise(r => setTimeout(r, 1100));
+                }
+                fitBoundsIfPossible();
+                const total = mapState.markers.length;
+                document.getElementById('map-stats').textContent = total === 0
+                    ? '还没有定位过的足迹 ✿（下次发朋友圈点 📍 试试）'
+                    : `${total} 处足迹 ❤`;
+
+                document.getElementById('map-fit-btn').addEventListener('click', fitBoundsIfPossible);
+
+                function addMarker(m, icon) {
+                    const popupHtml = `
+                        <div class="map-popup-title">${escapeHtml(m.title || '(无标题)')}</div>
+                        <div class="map-popup-date">${escapeHtml(m.author)} · ${escapeHtml(m.date || '')}</div>
+                        ${m.location ? `<div class="map-popup-loc">📍 ${escapeHtml(m.location)}</div>` : ''}
+                        ${m.photos && m.photos[0] ? `<img class="map-popup-thumb" src="${escapeHtml(m.photos[0])}" alt="">` : ''}
+                    `;
+                    const mk = L.marker([m.lat, m.lng], { icon }).addTo(mapState.map).bindPopup(popupHtml);
+                    mapState.markers.push(mk);
+                }
+                function fitBoundsIfPossible() {
+                    if (mapState.markers.length === 0) return;
+                    const bounds = L.latLngBounds(mapState.markers.map(m => m.getLatLng()));
+                    mapState.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+                }
+            }
+
+            // ===== 画板 / Drawing render =====
+            // Renders a canvas + tool bar. New strokes are added locally as they happen,
+            // then persisted to Firestore on stroke-end. Remote strokes appear via the
+            // strokesBackend subscription and we redraw the whole canvas.
+            const drawState = {
+                canvas: null, ctx: null,
+                color: '#ff6f9a',
+                width: 4,
+                drawing: false,
+                currentStroke: null,  // { points: [], color, width }
+                rect: null,
+            };
+            const DRAW_COLORS = ['#ff6f9a', '#ffd166', '#7dd3fc', '#a78bfa', '#ffffff', '#1a0e26'];
+            const DRAW_BRUSHES = [{ label: '细', size: 2 }, { label: '中', size: 4 }, { label: '粗', size: 8 }];
+
+            function renderDraw() {
+                const pane = document.getElementById('feed-pane-draw');
+                if (!pane) return;
+                pane.innerHTML = `
+                    <div class="draw-toolbar">
+                        ${DRAW_COLORS.map(c => `<button type="button" class="draw-color${c === drawState.color ? ' active' : ''}" data-color="${c}" style="background:${c}" aria-label="颜色"></button>`).join('')}
+                        ${DRAW_BRUSHES.map(b => `<button type="button" class="draw-brush${b.size === drawState.width ? ' active' : ''}" data-brush="${b.size}">${b.label}</button>`).join('')}
+                        <button type="button" class="draw-undo" id="draw-undo">撤销我的</button>
+                        <button type="button" class="draw-clear" id="draw-clear">清空全部</button>
+                    </div>
+                    <canvas id="draw-canvas" width="800" height="480"></canvas>
+                    <div class="draw-hint">在画板上一起画画 ✿ 笔画会实时同步到对方屏幕</div>
+                `;
+                drawState.canvas = document.getElementById('draw-canvas');
+                drawState.ctx = drawState.canvas.getContext('2d');
+                // Backing-store resolution = display size × DPR for crispness
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const cssW = drawState.canvas.offsetWidth;
+                const cssH = drawState.canvas.offsetHeight;
+                drawState.canvas.width  = Math.round(cssW * dpr);
+                drawState.canvas.height = Math.round(cssH * dpr);
+                drawState.ctx.scale(dpr, dpr);
+
+                redrawAll();
+                wireDrawInput();
+                wireDrawToolbar();
+            }
+            function redrawAll() {
+                if (!drawState.ctx || !drawState.canvas) return;
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                drawState.ctx.clearRect(0, 0, drawState.canvas.width / dpr, drawState.canvas.height / dpr);
+                const w = drawState.canvas.offsetWidth;
+                const h = drawState.canvas.offsetHeight;
+                for (const s of (strokesBackend.cached || [])) {
+                    drawStroke(s, w, h);
+                }
+                if (drawState.currentStroke) drawStroke(drawState.currentStroke, w, h);
+            }
+            function drawStroke(s, w, h) {
+                const pts = s.points || [];
+                if (pts.length < 1) return;
+                const ctx2 = drawState.ctx;
+                ctx2.lineCap = 'round';
+                ctx2.lineJoin = 'round';
+                ctx2.strokeStyle = s.color || '#ff6f9a';
+                ctx2.lineWidth = s.width || 4;
+                ctx2.beginPath();
+                ctx2.moveTo(pts[0].x * w, pts[0].y * h);
+                for (let i = 1; i < pts.length; i++) {
+                    ctx2.lineTo(pts[i].x * w, pts[i].y * h);
+                }
+                if (pts.length === 1) {  // single dot
+                    ctx2.fillStyle = s.color || '#ff6f9a';
+                    ctx2.beginPath();
+                    ctx2.arc(pts[0].x * w, pts[0].y * h, (s.width || 4) / 2, 0, Math.PI * 2);
+                    ctx2.fill();
+                } else {
+                    ctx2.stroke();
+                }
+            }
+            function getPointFromEvent(ev) {
+                const rect = drawState.canvas.getBoundingClientRect();
+                const t = ev.touches ? ev.touches[0] : ev;
+                return {
+                    x: (t.clientX - rect.left) / rect.width,
+                    y: (t.clientY - rect.top) / rect.height
+                };
+            }
+            function wireDrawInput() {
+                const canvas = drawState.canvas;
+                const startDraw = (ev) => {
+                    ev.preventDefault();
+                    drawState.drawing = true;
+                    drawState.currentStroke = { points: [getPointFromEvent(ev)], color: drawState.color, width: drawState.width, by: currentViewer };
+                    redrawAll();
+                };
+                const moveDraw = (ev) => {
+                    if (!drawState.drawing) return;
+                    ev.preventDefault();
+                    drawState.currentStroke.points.push(getPointFromEvent(ev));
+                    redrawAll();
+                };
+                const endDraw = async (ev) => {
+                    if (!drawState.drawing) return;
+                    ev.preventDefault();
+                    drawState.drawing = false;
+                    const stroke = drawState.currentStroke;
+                    drawState.currentStroke = null;
+                    if (stroke && stroke.points.length > 0) {
+                        try { await strokesBackend.add(stroke); }
+                        catch (e) { console.warn('save stroke failed', e); }
+                    }
+                };
+                canvas.addEventListener('mousedown', startDraw);
+                canvas.addEventListener('mousemove', moveDraw);
+                window.addEventListener('mouseup', endDraw);
+                canvas.addEventListener('mouseleave', endDraw);
+                canvas.addEventListener('touchstart', startDraw, { passive: false });
+                canvas.addEventListener('touchmove',  moveDraw,  { passive: false });
+                canvas.addEventListener('touchend',   endDraw);
+                canvas.addEventListener('touchcancel', endDraw);
+            }
+            function wireDrawToolbar() {
+                const pane = document.getElementById('feed-pane-draw');
+                pane.addEventListener('click', async (e) => {
+                    const c = e.target.closest('.draw-color');
+                    if (c) {
+                        drawState.color = c.getAttribute('data-color');
+                        pane.querySelectorAll('.draw-color').forEach(b => b.classList.toggle('active', b === c));
+                        return;
+                    }
+                    const b = e.target.closest('.draw-brush');
+                    if (b) {
+                        drawState.width = parseInt(b.getAttribute('data-brush'), 10);
+                        pane.querySelectorAll('.draw-brush').forEach(x => x.classList.toggle('active', x === b));
+                        return;
+                    }
+                    if (e.target.closest('#draw-clear')) {
+                        if (!confirm('确定要清空整个画板吗？\n\n（双方都会看到清空）')) return;
+                        try { await strokesBackend.clearAll(); }
+                        catch (err) { alert('清空失败：' + err.message); }
+                        return;
+                    }
+                    if (e.target.closest('#draw-undo')) {
+                        // Find my most recent stroke and remove it
+                        const mine = (strokesBackend.cached || []).filter(s => s.by === currentViewer);
+                        if (mine.length === 0) return;
+                        const last = mine[mine.length - 1];
+                        try { await strokesBackend.removeOne(last.id); }
+                        catch (err) { alert('撤销失败：' + err.message); }
+                        return;
+                    }
+                });
+            }
+            // Subscribe so remote strokes from the partner appear live
+            strokesBackend.subscribe(() => {
+                if (momentsOverlay.classList.contains('open') && activeFeedTab === 'draw') redrawAll();
+            });
+            // Re-render map when new moments land (only if active)
+            momentsBackend.subscribe(() => {
+                if (momentsOverlay.classList.contains('open') && activeFeedTab === 'map') {
+                    // Just refresh the map silently — full re-render would lose zoom state
+                    // but the simple thing is fine here since user is unlikely to be zoomed in
+                    // while a new moment lands. Keep it simple.
+                    // (Defer to next tick so the cache updates first.)
+                    setTimeout(() => renderMap(), 100);
+                }
+            });
+
             // Tab switching
             let activeFeedTab = 'moments';
             const feedTabs = document.getElementById('feed-tabs');
             const feedPaneMoments = document.getElementById('feed-pane-moments');
             const feedPaneWishes = document.getElementById('feed-pane-wishes');
             const feedPaneSongs = document.getElementById('feed-pane-songs');
+            const feedPaneMap = document.getElementById('feed-pane-map');
+            const feedPaneDraw = document.getElementById('feed-pane-draw');
             feedTabs.addEventListener('click', (e) => {
                 const btn = e.target.closest('.feed-tab');
                 if (!btn) return;
@@ -3931,12 +4446,16 @@
                 feedPaneMoments.classList.toggle('hidden', tab !== 'moments');
                 feedPaneWishes.classList.toggle('hidden', tab !== 'wishes');
                 feedPaneSongs.classList.toggle('hidden', tab !== 'songs');
+                feedPaneMap.classList.toggle('hidden', tab !== 'map');
+                feedPaneDraw.classList.toggle('hidden', tab !== 'draw');
                 // The floating "+" publish button only makes sense for moments;
-                // wishes and songs have their own inline input rows.
+                // other tabs have their own inline controls (or don't need any).
                 const pbtn = document.getElementById('publish-btn');
                 if (pbtn) pbtn.style.display = tab === 'moments' ? '' : 'none';
                 if (tab === 'wishes') renderWishes();
                 if (tab === 'songs') renderSongs();
+                if (tab === 'map') renderMap();
+                if (tab === 'draw') renderDraw();
             });
 
             // Re-render wishes live when Firestore changes (only if active)
@@ -4302,6 +4821,7 @@
                 locationInput.value = '';
                 pendingPhotos = [];
                 pendingLocation = '';
+                pendingLatLng = null;
                 renderPhotoPreviews();
                 publishStatus.textContent = '';
                 locateStatus.textContent = '';
@@ -4405,14 +4925,21 @@
                     }
                     // 2. Write the moment doc to Firestore (LiveQuery snapshot will trigger UI refresh)
                     publishStatus.textContent = '保存中…';
-                    await momentsBackend.add({
+                    const payload = {
                         author: selectedAuthor(),
                         date,
                         title,
                         text,
                         location,
                         photos: photoUrls
-                    });
+                    };
+                    // If the user pressed the 📍 button we have coords cached; include them
+                    // so this moment shows up immediately on the 足迹 map without geocoding.
+                    if (typeof pendingLatLng === 'object' && pendingLatLng) {
+                        payload.lat = pendingLatLng.lat;
+                        payload.lng = pendingLatLng.lng;
+                    }
+                    await momentsBackend.add(payload);
                     publishStatus.textContent = '发表成功 ❤';
                     setTimeout(() => { closePublish(); }, 400);
                 } catch (e) {
@@ -4444,10 +4971,12 @@
                 locateStatus.textContent = '正在获取位置…';
                 navigator.geolocation.getCurrentPosition(
                     async (pos) => {
+                        // Stash coords so this moment lands on the 足迹 map immediately
+                        pendingLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                         try {
                             const name = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
                             locationInput.value = name;
-                            locateStatus.textContent = '✓ 已填入位置';
+                            locateStatus.textContent = '✓ 已填入位置（带坐标，会出现在足迹地图）';
                         } catch (e) {
                             locationInput.value = `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
                             locateStatus.textContent = '位置已填，但获取地名失败';
