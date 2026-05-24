@@ -389,6 +389,62 @@
         }
         .feed-pane.hidden { display: none; }
 
+        /* Moments search bar */
+        .moments-search-row {
+            position: relative;
+            margin: 0 0 14px;
+        }
+        .moments-search-row input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 38px 10px 38px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            font-size: 15px;
+            letter-spacing: 1px;
+            outline: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .moments-search-row input:focus {
+            border-color: rgba(255, 150, 180, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .moments-search-row input::placeholder { color: rgba(255, 255, 255, 0.35); }
+        .moments-search-row .search-icon {
+            position: absolute;
+            left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 200, 220, 0.55);
+            pointer-events: none;
+        }
+        .moments-search-row .search-clear {
+            position: absolute;
+            right: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .moments-search-row.has-text .search-clear { display: flex; }
+        .moments-search-row .search-clear:hover { background: rgba(255, 255, 255, 0.22); }
+        .search-empty {
+            text-align: center;
+            padding: 28px 16px;
+            color: rgba(255, 255, 255, 0.45);
+            font-family: "Long Cang", cursive;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
         /* Wishlist */
         .wish-add-row {
             display: flex;
@@ -1398,7 +1454,6 @@
             align-items: center;
             justify-content: center;
             z-index: 60;
-            cursor: zoom-out;
             padding: 20px;
         }
         #photo-lightbox.open { display: flex; }
@@ -1406,7 +1461,58 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            user-select: none;
+            -webkit-user-drag: none;
         }
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px; height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, opacity 0.2s ease;
+            opacity: 0.7;
+        }
+        .lightbox-nav:hover { background: rgba(255, 255, 255, 0.2); opacity: 1; }
+        .lightbox-nav:disabled { opacity: 0; pointer-events: none; }
+        .lightbox-prev { left: 16px; }
+        .lightbox-next { right: 16px; }
+        .lightbox-counter {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-family: "Long Cang", cursive;
+            font-size: 15px;
+            letter-spacing: 2px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 38px; height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .lightbox-close:hover { background: rgba(255, 255, 255, 0.2); transform: rotate(90deg); }
 
         /* Floating publish button */
         #publish-btn {
@@ -1866,6 +1972,9 @@
                     <div class="mini-player-title" id="mini-player-title">—</div>
                     <div class="mini-player-sub" id="mini-player-sub"></div>
                 </div>
+                <button class="mini-player-btn" id="mini-player-loop" aria-label="循环模式" title="循环模式（关闭 / 列表循环 / 单曲循环）">
+                    <!-- Icon swapped at runtime depending on loop mode -->
+                </button>
                 <button class="mini-player-btn" id="mini-player-prev" aria-label="上一首" title="上一首">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM9.5 12l8.5-6v12z"/></svg>
                 </button>
@@ -1881,9 +1990,19 @@
         <!-- Monthly / yearly review modal -->
         <div id="review-modal" role="dialog" aria-label="月度回顾"></div>
 
-        <!-- Photo lightbox -->
+        <!-- Photo lightbox with prev/next navigation -->
         <div id="photo-lightbox" role="dialog" aria-label="照片预览">
+            <button class="lightbox-close" id="lightbox-close" aria-label="关闭">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <div class="lightbox-counter" id="lightbox-counter">1 / 1</div>
+            <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="上一张">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
             <img alt="" />
+            <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="下一张">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
         </div>
 
         <!-- Publish modal -->
@@ -3445,17 +3564,43 @@
                 }
             });
 
+            // Persistent search query across renders (Firestore live updates re-render too)
+            let momentsSearchQuery = '';
+            function matchesMomentSearch(m, q) {
+                if (!q) return true;
+                const hay = `${m.title || ''} ${m.text || ''} ${m.location || ''} ${m.author || ''} ${m.date || ''}`.toLowerCase();
+                return hay.includes(q);
+            }
             function renderMomentsFeed() {
                 renderSidebar();
                 const pane = document.getElementById('feed-pane-moments');
                 if (!pane) return;
-                const moments = loadMoments().map(normalizeMoment).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                const topExtras = buildReviewBanner() + buildRecallCard();
-                if (moments.length === 0) {
-                    pane.innerHTML = topExtras + '<div class="moment-empty">还没有故事，点右下角 + 发表第一条吧 ❤</div>';
+                const all = loadMoments().map(normalizeMoment).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                const q = (momentsSearchQuery || '').trim().toLowerCase();
+                const moments = q ? all.filter(m => matchesMomentSearch(m, q)) : all;
+                const hasTextCls = q ? ' has-text' : '';
+                const searchRow = `
+                    <div class="moments-search-row${hasTextCls}">
+                        <span class="search-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+                        </span>
+                        <input type="text" id="moments-search-input" placeholder="搜文字、地点、日期、作者…" value="${escapeHtml(momentsSearchQuery)}" autocomplete="off">
+                        <button type="button" class="search-clear" id="moments-search-clear" aria-label="清空">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                        </button>
+                    </div>
+                `;
+                // Hide review/recall banners when actively searching (keep search results clean)
+                const topExtras = q ? '' : buildReviewBanner() + buildRecallCard();
+                if (all.length === 0) {
+                    pane.innerHTML = searchRow + topExtras + '<div class="moment-empty">还没有故事，点右下角 + 发表第一条吧 ❤</div>';
                     return;
                 }
-                pane.innerHTML = topExtras + moments.map(m => {
+                if (moments.length === 0) {
+                    pane.innerHTML = searchRow + `<div class="search-empty">没有找到包含「${escapeHtml(momentsSearchQuery)}」的朋友圈</div>`;
+                    return;
+                }
+                pane.innerHTML = searchRow + topExtras + moments.map(m => {
                     const avatar = m.author === 'Melody' ? AVATAR_SVG_MELODY : AVATAR_SVG_EDDY;
                     const avatarClass = m.author === 'Melody' ? 'moment-avatar melody' : 'moment-avatar';
                     const photos = (m.photos || []);
@@ -3581,12 +3726,19 @@
             // miniPlayer holds the currently-loaded queue + index. The queue is just
             // a snapshot of the songs list at "play" time; subsequent inserts/deletes
             // by either user don't disrupt what's currently playing.
+            // Loop-mode icons. Three states cycle on click: off → list → one → off
+            const LOOP_ICON_OFF  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><line x1="3" y1="3" x2="21" y2="21"/></svg>';
+            const LOOP_ICON_LIST = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+            const LOOP_ICON_ONE  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="9" y="16" font-size="9" fill="currentColor" stroke="none" font-weight="bold">1</text></svg>';
+
             const miniPlayer = {
                 el: null, iframe: null, titleEl: null, subEl: null,
-                prevBtn: null, nextBtn: null, closeBtn: null,
+                prevBtn: null, nextBtn: null, closeBtn: null, loopBtn: null,
                 queue: [],         // array of {id, bvid, title, addedBy}
                 index: -1,         // current position
+                loopMode: localStorage.getItem('pourMelodyLoopMode') || 'list',  // 'off' | 'list' | 'one'
                 get currentSongId() { return this.index >= 0 && this.queue[this.index] ? this.queue[this.index].id : null; },
+
                 init() {
                     this.el       = document.getElementById('mini-player');
                     this.iframe   = document.getElementById('mini-player-iframe');
@@ -3595,39 +3747,107 @@
                     this.prevBtn  = document.getElementById('mini-player-prev');
                     this.nextBtn  = document.getElementById('mini-player-next');
                     this.closeBtn = document.getElementById('mini-player-close');
+                    this.loopBtn  = document.getElementById('mini-player-loop');
                     this.prevBtn.addEventListener('click', () => this.prev());
                     this.nextBtn.addEventListener('click', () => this.next());
                     this.closeBtn.addEventListener('click', () => this.close());
+                    this.loopBtn.addEventListener('click', () => this.cycleLoopMode());
+                    this._updateLoopBtn();
+
+                    // Listen for postMessage events from the Bilibili iframe. Bilibili's
+                    // embed player isn't documented for cross-origin events but some builds
+                    // do post `{type:'ended'}` or `{event:'video_end'}`-style payloads.
+                    // We accept anything that looks like an "end" signal and act on it.
+                    window.addEventListener('message', (ev) => {
+                        // Only trust messages whose source is our iframe
+                        if (!this.iframe || ev.source !== this.iframe.contentWindow) return;
+                        const d = ev.data;
+                        if (!d) return;
+                        const str = (typeof d === 'string') ? d : JSON.stringify(d);
+                        if (/end|ended|finish|complete|stop/i.test(str)) {
+                            this._handleSongEnd();
+                        }
+                    });
                 },
+
+                cycleLoopMode() {
+                    const order = ['off', 'list', 'one'];
+                    const idx = order.indexOf(this.loopMode);
+                    this.loopMode = order[(idx + 1) % order.length];
+                    localStorage.setItem('pourMelodyLoopMode', this.loopMode);
+                    this._updateLoopBtn();
+                    this._showLoopToast();
+                },
+                _updateLoopBtn() {
+                    if (!this.loopBtn) return;
+                    if (this.loopMode === 'off')  { this.loopBtn.innerHTML = LOOP_ICON_OFF;  this.loopBtn.style.color = 'rgba(255,255,255,0.45)'; }
+                    if (this.loopMode === 'list') { this.loopBtn.innerHTML = LOOP_ICON_LIST; this.loopBtn.style.color = '#ff9fc0'; }
+                    if (this.loopMode === 'one')  { this.loopBtn.innerHTML = LOOP_ICON_ONE;  this.loopBtn.style.color = '#ff9fc0'; }
+                },
+                _showLoopToast() {
+                    const labels = { off: '关闭循环', list: '列表循环', one: '单曲循环' };
+                    if (this.subEl) {
+                        const orig = this.subEl.textContent;
+                        this.subEl.textContent = labels[this.loopMode];
+                        clearTimeout(this._loopToastTimer);
+                        this._loopToastTimer = setTimeout(() => {
+                            if (this.queue[this.index]) {
+                                this.subEl.textContent = `${this.queue[this.index].addedBy || '?'} 加入 · ${this.index + 1}/${this.queue.length}`;
+                            } else {
+                                this.subEl.textContent = orig;
+                            }
+                        }, 1500);
+                    }
+                },
+                _handleSongEnd() {
+                    // Called when we detect the current B站 video ended (best-effort).
+                    if (this.loopMode === 'one') {
+                        this._load();  // reload same bvid
+                    } else if (this.loopMode === 'list') {
+                        if (this.queue.length === 0) return;
+                        this.index = (this.index + 1) % this.queue.length;
+                        this._load();
+                    } else {
+                        // off — do nothing, let it sit
+                    }
+                },
+
                 play(songsList, startId) {
-                    // Build queue starting at the chosen song; if no startId, start from top
                     this.queue = songsList.slice();
                     const i = startId ? this.queue.findIndex(s => s.id === startId) : 0;
                     this.index = i >= 0 ? i : 0;
                     this._load();
                     this._open();
-                    // Auto-mute the background piano so the song isn't fighting it
                     if (typeof setMuted === 'function' && !isMuted) setMuted(true);
                 },
                 _load() {
                     const cur = this.queue[this.index];
                     if (!cur) return this.close();
-                    // Bilibili embed URL — autoplay=1 starts immediately, danmaku=0 hides comments,
-                    // high_quality=1 picks better stream when available.
+                    // Bilibili embed URL — autoplay=1 starts immediately, danmaku=0 hides
+                    // comments, high_quality=1 picks better stream when available.
                     const src = `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(cur.bvid)}&autoplay=1&danmaku=0&high_quality=1`;
                     this.iframe.src = src;
                     this.titleEl.textContent = cur.title || cur.bvid;
                     this.subEl.textContent = `${cur.addedBy || '?'} 加入 · ${this.index + 1}/${this.queue.length}`;
-                    this.prevBtn.disabled = this.index <= 0;
-                    this.nextBtn.disabled = this.index >= this.queue.length - 1;
-                    // Re-render songs pane to highlight the playing one
+                    // With list-loop on, prev/next wrap around — never disable
+                    const wrap = this.loopMode === 'list';
+                    this.prevBtn.disabled = !wrap && this.index <= 0;
+                    this.nextBtn.disabled = !wrap && this.index >= this.queue.length - 1;
                     if (activeFeedTab === 'songs') renderSongs();
                 },
                 prev() {
-                    if (this.index > 0) { this.index--; this._load(); }
+                    if (this.queue.length === 0) return;
+                    if (this.index > 0) { this.index--; }
+                    else if (this.loopMode === 'list') { this.index = this.queue.length - 1; }
+                    else return;
+                    this._load();
                 },
                 next() {
-                    if (this.index < this.queue.length - 1) { this.index++; this._load(); }
+                    if (this.queue.length === 0) return;
+                    if (this.index < this.queue.length - 1) { this.index++; }
+                    else if (this.loopMode === 'list') { this.index = 0; }
+                    else return;
+                    this._load();
                 },
                 _open() {
                     this.el.classList.add('open');
@@ -3636,7 +3856,6 @@
                 close() {
                     this.el.classList.remove('open');
                     this.el.setAttribute('aria-hidden', 'true');
-                    // Clear iframe src so audio actually stops
                     this.iframe.src = 'about:blank';
                     this.index = -1;
                     this.queue = [];
@@ -3652,10 +3871,14 @@
                 let html = `
                     <div class="song-add-row">
                         <input id="song-input" type="text" placeholder="粘贴 Bilibili 链接或 BV 号…" autocomplete="off">
+                    </div>
+                    <div class="song-add-row">
+                        <input id="song-title-input" type="text" placeholder="歌名（必填，自己起也行）" autocomplete="off" maxlength="80">
                         <button type="button" id="song-add-btn">加入 ♪</button>
                     </div>
                     <div class="song-hint">
-                        从 Bilibili 视频页复制完整链接（手机：分享 → 复制链接；电脑：浏览器地址栏），粘贴进来就行。
+                        粘贴 B 站视频链接（手机：分享 → 复制链接；电脑：地址栏复制），
+                        起个歌名（B 站不让我们自动抓标题）。
                     </div>
                 `;
 
@@ -3779,15 +4002,21 @@
             feedPaneSongs.addEventListener('click', async (e) => {
                 // Add song button
                 if (e.target.closest('#song-add-btn')) {
-                    const input = document.getElementById('song-input');
-                    const raw = (input.value || '').trim();
-                    if (!raw) return;
+                    const linkInput = document.getElementById('song-input');
+                    const titleInput = document.getElementById('song-title-input');
+                    const raw = (linkInput.value || '').trim();
+                    const title = (titleInput.value || '').trim();
+                    if (!raw) { linkInput.focus(); return; }
+                    if (!title) {
+                        alert('给这首歌起个名字吧 ♪');
+                        titleInput.focus();
+                        return;
+                    }
                     const bvid = extractBvid(raw);
                     if (!bvid) {
                         alert('看不出 BV 号 — 请粘贴包含 BV... 的 Bilibili 链接');
                         return;
                     }
-                    // Avoid duplicates
                     if (songsBackend.cached.some(s => s.bvid === bvid)) {
                         alert('这首歌已经在歌单里啦 ♪');
                         return;
@@ -3796,12 +4025,10 @@
                     addBtn.disabled = true;
                     addBtn.textContent = '加入中…';
                     try {
-                        // Best-effort fetch title; fall back to the BV id
-                        const fetchedTitle = await fetchBilibiliTitle(bvid);
-                        const title = fetchedTitle || bvid;
                         await songsBackend.add({ bvid, title, who: currentViewer });
-                        input.value = '';
-                        input.focus();
+                        linkInput.value = '';
+                        titleInput.value = '';
+                        linkInput.focus();
                     } catch (err) {
                         console.warn('add song failed', err);
                         alert('添加失败：' + err.message);
@@ -3835,9 +4062,14 @@
                     catch (err) { console.warn('remove song failed', err); alert('删除失败：' + err.message); delBtn.disabled = false; }
                 }
             });
-            // Enter key in song input adds
+            // Enter in song-input → focus title; Enter in title-input → submit
             feedPaneSongs.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.target && e.target.id === 'song-input') {
+                if (e.key !== 'Enter' || !e.target) return;
+                if (e.target.id === 'song-input') {
+                    e.preventDefault();
+                    const titleInput = document.getElementById('song-title-input');
+                    if (titleInput) titleInput.focus();
+                } else if (e.target.id === 'song-title-input') {
                     e.preventDefault();
                     const addBtn = document.getElementById('song-add-btn');
                     if (addBtn) addBtn.click();
@@ -3924,6 +4156,31 @@
                 if (btn) btn.click();
             });
 
+            // Moments search — live filter as the user types.
+            // We re-render the whole feed pane on each keystroke; cheap because
+            // it's just innerHTML on already-cached data.
+            momentsFeed.addEventListener('input', (e) => {
+                if (e.target && e.target.id === 'moments-search-input') {
+                    momentsSearchQuery = e.target.value || '';
+                    renderMomentsFeed();
+                    // After re-render the input loses focus; restore it + caret position
+                    const newInput = document.getElementById('moments-search-input');
+                    if (newInput) {
+                        newInput.focus();
+                        const len = newInput.value.length;
+                        try { newInput.setSelectionRange(len, len); } catch (_) {}
+                    }
+                }
+            });
+            momentsFeed.addEventListener('click', (e) => {
+                if (e.target.closest('#moments-search-clear')) {
+                    momentsSearchQuery = '';
+                    renderMomentsFeed();
+                    const newInput = document.getElementById('moments-search-input');
+                    if (newInput) newInput.focus();
+                }
+            });
+
             function openMoments() {
                 momentsOverlay.classList.add('open');
                 momentsOverlay.setAttribute('aria-hidden', 'false');
@@ -3942,24 +4199,96 @@
                     const reviewOpen = document.getElementById('review-modal')?.classList.contains('open');
                     if (publishModal.classList.contains('open')) closePublish();
                     else if (reviewOpen) closeReviewModal();
-                    else if (lightbox.classList.contains('open')) lightbox.classList.remove('open');
+                    else if (lightbox.classList.contains('open')) {
+                        // Use the helper if available (defined below); fall back to inline.
+                        if (typeof closeLightbox === 'function') closeLightbox();
+                        else { lightbox.classList.remove('open'); lightboxImg.src = ''; }
+                    }
                     else if (momentsOverlay.classList.contains('open')) closeMoments();
                 }
             });
 
-            // Lightbox
+            // ===== Lightbox with prev/next navigation =====
+            // When a photo in a moment is clicked, gather ALL non-placeholder photos
+            // from that moment and let the user swipe / arrow through them.
+            const lightboxPrev = document.getElementById('lightbox-prev');
+            const lightboxNext = document.getElementById('lightbox-next');
+            const lightboxClose = document.getElementById('lightbox-close');
+            const lightboxCounter = document.getElementById('lightbox-counter');
+            let lightboxList = [];
+            let lightboxIdx = 0;
+
+            function showLightboxAt(i) {
+                if (!lightboxList.length) return;
+                lightboxIdx = Math.max(0, Math.min(i, lightboxList.length - 1));
+                lightboxImg.src = lightboxList[lightboxIdx];
+                lightboxCounter.textContent = `${lightboxIdx + 1} / ${lightboxList.length}`;
+                lightboxPrev.disabled = lightboxIdx === 0;
+                lightboxNext.disabled = lightboxIdx === lightboxList.length - 1;
+                // Hide counter & nav when there's only one photo
+                const single = lightboxList.length <= 1;
+                lightboxCounter.style.display = single ? 'none' : '';
+                lightboxPrev.style.display = single ? 'none' : '';
+                lightboxNext.style.display = single ? 'none' : '';
+            }
+            function closeLightbox() {
+                lightbox.classList.remove('open');
+                lightboxImg.src = '';
+                lightboxList = [];
+            }
+
             momentsFeed.addEventListener('click', (e) => {
                 const cell = e.target.closest('.moment-photo');
                 if (!cell) return;
                 const src = cell.getAttribute('data-photo');
                 if (!src || src.startsWith('placeholder')) return;
-                lightboxImg.src = src;
+                // Collect all sibling photos in the same moment-photos grid
+                const grid = cell.closest('.moment-photos');
+                const peers = grid
+                    ? Array.from(grid.querySelectorAll('.moment-photo'))
+                          .map(el => el.getAttribute('data-photo'))
+                          .filter(p => p && !p.startsWith('placeholder'))
+                    : [src];
+                lightboxList = peers;
+                const startIdx = peers.indexOf(src);
+                showLightboxAt(startIdx >= 0 ? startIdx : 0);
                 lightbox.classList.add('open');
             });
-            lightbox.addEventListener('click', () => {
-                lightbox.classList.remove('open');
-                lightboxImg.src = '';
+
+            // Prev / Next / Close buttons
+            lightboxPrev.addEventListener('click', (e) => { e.stopPropagation(); showLightboxAt(lightboxIdx - 1); });
+            lightboxNext.addEventListener('click', (e) => { e.stopPropagation(); showLightboxAt(lightboxIdx + 1); });
+            lightboxClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+            // Click on the dark background (not on image / buttons) closes
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) closeLightbox();
             });
+
+            // Arrow keys navigate the lightbox while open
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.classList.contains('open')) return;
+                if (e.key === 'ArrowLeft')  { e.preventDefault(); showLightboxAt(lightboxIdx - 1); }
+                if (e.key === 'ArrowRight') { e.preventDefault(); showLightboxAt(lightboxIdx + 1); }
+            });
+
+            // Touch swipe (mobile) — left/right swipe past 40px triggers next/prev
+            let touchStartX = 0, touchStartY = 0, touching = false;
+            lightbox.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touching = true;
+            }, { passive: true });
+            lightbox.addEventListener('touchend', (e) => {
+                if (!touching) return;
+                touching = false;
+                const dx = (e.changedTouches[0].clientX) - touchStartX;
+                const dy = (e.changedTouches[0].clientY) - touchStartY;
+                if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                    if (dx < 0) showLightboxAt(lightboxIdx + 1);
+                    else        showLightboxAt(lightboxIdx - 1);
+                }
+            }, { passive: true });
 
             // Publish modal
             function todayIso() {
