@@ -348,6 +348,315 @@
         .moments-feed {
             min-width: 0;   /* prevent grid blowout when text is long */
         }
+
+        /* Feed tabs (朋友圈 / 心愿单) */
+        .feed-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .feed-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.55);
+            font-family: "Long Cang", cursive;
+            font-size: 16px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .feed-tab:hover { color: rgba(255, 200, 230, 0.8); background: rgba(255, 255, 255, 0.04); }
+        .feed-tab.active {
+            background: linear-gradient(135deg, rgba(255, 130, 170, 0.5), rgba(190, 100, 200, 0.4));
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(255, 100, 160, 0.3);
+        }
+        .feed-pane.hidden { display: none; }
+
+        /* Wishlist */
+        .wish-add-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .wish-add-row input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .wish-add-row input:focus { border-color: rgba(255, 150, 180, 0.6); background: rgba(255, 255, 255, 0.12); }
+        .wish-add-row input::placeholder { color: rgba(255, 255, 255, 0.35); }
+        .wish-add-row button {
+            background: linear-gradient(135deg, #ff7aa5, #c14fa9);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            padding: 0 18px;
+            font-family: "Long Cang", cursive;
+            font-size: 16px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 14px rgba(255, 100, 160, 0.3);
+            transition: filter 0.2s ease, transform 0.2s ease;
+        }
+        .wish-add-row button:hover { filter: brightness(1.1); }
+        .wish-add-row button:active { transform: scale(0.97); }
+        .wish-add-row button:disabled { opacity: 0.55; cursor: wait; }
+
+        .wish-section-title {
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 200, 220, 0.55);
+            font-size: 13px;
+            letter-spacing: 1px;
+            padding: 10px 4px 6px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            margin-bottom: 6px;
+        }
+
+        .wish-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 12px;
+            margin-bottom: 6px;
+            border-radius: 12px;
+            background: linear-gradient(160deg, rgba(255, 180, 210, 0.08), rgba(180, 130, 200, 0.06));
+            border: 1px solid rgba(255, 180, 210, 0.12);
+            transition: opacity 0.3s ease, background 0.2s ease;
+        }
+        .wish-item.done {
+            opacity: 0.55;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .wish-checkbox {
+            flex: 0 0 22px;
+            width: 22px; height: 22px;
+            border: 2px solid rgba(255, 180, 210, 0.6);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            color: transparent;
+        }
+        .wish-checkbox:hover { border-color: #ff6f9a; }
+        .wish-item.done .wish-checkbox {
+            background: linear-gradient(135deg, #ff7aa5, #c14fa9);
+            border-color: #ff6f9a;
+            color: #fff;
+        }
+        .wish-body { flex: 1; min-width: 0; }
+        .wish-text {
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 17px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .wish-item.done .wish-text { text-decoration: line-through; color: rgba(255, 255, 255, 0.5); }
+        .wish-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: "Long Cang", cursive;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .wish-meta-avatar {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            overflow: hidden;
+            vertical-align: middle;
+        }
+        .wish-meta-avatar svg { width: 100%; height: 100%; display: block; }
+        .wish-delete {
+            flex: 0 0 26px;
+            width: 26px; height: 26px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 120, 140, 0.35);
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .wish-delete:hover { color: #ff6f8a; background: rgba(255, 100, 130, 0.12); }
+        .wish-empty {
+            text-align: center;
+            padding: 40px 20px;
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        /* Monthly review banner + modal */
+        .review-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 14px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255, 200, 100, 0.18), rgba(255, 130, 170, 0.22));
+            border: 1px solid rgba(255, 220, 150, 0.35);
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.95);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .review-banner:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(255, 180, 120, 0.3); }
+        .review-banner .sparkle { font-size: 22px; }
+        .review-banner-text { flex: 1; font-size: 15px; letter-spacing: 1px; }
+        .review-banner-cta { color: #ffd6a8; font-size: 13px; }
+
+        #review-modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 65;
+            padding: 20px;
+        }
+        #review-modal.open { display: flex; }
+        .review-card {
+            background: linear-gradient(160deg, rgba(60, 22, 70, 0.96), rgba(28, 16, 40, 0.96));
+            border: 1px solid rgba(255, 180, 210, 0.25);
+            border-radius: 22px;
+            padding: 26px 24px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 88vh;
+            overflow-y: auto;
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.7);
+        }
+        .review-card-title {
+            text-align: center;
+            font-size: 24px;
+            color: #ffd6e6;
+            letter-spacing: 2px;
+            margin: 0 0 6px;
+        }
+        .review-card-sub {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin-bottom: 22px;
+        }
+        .review-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .review-stat {
+            text-align: center;
+            padding: 12px 4px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .review-stat-num {
+            font-size: 24px;
+            color: #ff6f9a;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .review-stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+        }
+        .review-section-title {
+            font-size: 14px;
+            color: rgba(255, 200, 220, 0.7);
+            letter-spacing: 1px;
+            margin: 16px 0 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        .review-photos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .review-photo {
+            position: relative;
+            padding-top: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255, 200, 220, 0.2), rgba(160, 120, 200, 0.2));
+        }
+        .review-photo img {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .review-top-card {
+            display: flex;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 14px;
+        }
+        .review-top-card .top-thumb {
+            flex: 0 0 60px;
+            width: 60px; height: 60px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255, 200, 220, 0.3), rgba(160, 120, 200, 0.3));
+        }
+        .review-top-card .top-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .review-top-card .top-info { flex: 1; min-width: 0; }
+        .review-top-card .top-author { color: #ffc4d8; font-size: 14px; margin-bottom: 2px; }
+        .review-top-card .top-title { font-size: 16px; color: #fff; }
+        .review-top-card .top-stats { font-size: 13px; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
+
+        .review-close {
+            display: block;
+            width: 100%;
+            margin-top: 18px;
+            padding: 11px;
+            background: linear-gradient(135deg, #ff7aa5, #c14fa9);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: "Long Cang", cursive;
+            font-size: 17px;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+        .review-close:hover { filter: brightness(1.1); }
         .moments-sidebar, .moments-sidebar-right {
             position: sticky;
             top: 80px;       /* sit below the sticky header */
@@ -471,6 +780,109 @@
             color: rgba(255, 255, 255, 0.4);
             padding: 12px 0;
             font-size: 13px;
+        }
+
+        /* Mood thermometer panel (right sidebar) */
+        .mood-block {
+            margin-bottom: 12px;
+        }
+        .mood-block:last-child { margin-bottom: 0; }
+        .mood-block-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 4px;
+        }
+        .mood-block-name { color: #ffc4d8; letter-spacing: 1px; }
+        .mood-block-value { color: #fff; font-size: 16px; }
+        .mood-block-value.empty { color: rgba(255, 255, 255, 0.35); font-size: 13px; }
+        .mood-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, rgba(160, 160, 200, 0.4) 0%, rgba(255, 130, 170, 0.65) 100%);
+            outline: none;
+            cursor: pointer;
+            margin: 4px 0;
+        }
+        .mood-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff6f9a;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(255, 100, 160, 0.5);
+            cursor: grab;
+        }
+        .mood-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff6f9a;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(255, 100, 160, 0.5);
+            cursor: grab;
+        }
+        .mood-slider.readonly { cursor: default; opacity: 0.95; }
+        .mood-slider.readonly::-webkit-slider-thumb { cursor: default; background: #c14fa9; }
+        .mood-slider.readonly::-moz-range-thumb     { cursor: default; background: #c14fa9; }
+
+        .mood-emoji-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            padding: 0 2px;
+        }
+        .mood-toggle-chart {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 6px;
+            border: 1px dashed rgba(255, 180, 210, 0.3);
+            border-radius: 10px;
+            background: none;
+            color: rgba(255, 200, 230, 0.7);
+            font-family: "Long Cang", cursive;
+            font-size: 13px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: background 0.2s ease;
+        }
+        .mood-toggle-chart:hover { background: rgba(255, 130, 170, 0.1); color: #ffc4d8; }
+        .mood-chart-wrap {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        .mood-chart-wrap.open { display: block; }
+        .mood-chart-legend {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            justify-content: center;
+            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .mood-chart-legend .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .mood-chart {
+            width: 100%;
+            height: 80px;
+            display: block;
         }
 
         .moment-card {
@@ -1123,7 +1535,14 @@
                 <aside class="moments-sidebar" id="moments-sidebar">
                     <!-- LEFT column: 想念 panel (always present); future panels stack below -->
                 </aside>
-                <div class="moments-feed" id="moments-feed"></div>
+                <div class="moments-feed" id="moments-feed">
+                    <div class="feed-tabs" id="feed-tabs">
+                        <button type="button" class="feed-tab active" data-tab="moments">朋友圈</button>
+                        <button type="button" class="feed-tab" data-tab="wishes">心愿单</button>
+                    </div>
+                    <div id="feed-pane-moments" class="feed-pane"></div>
+                    <div id="feed-pane-wishes" class="feed-pane hidden"></div>
+                </div>
                 <aside class="moments-sidebar-right" id="moments-sidebar-right">
                     <!-- RIGHT column: reserved for future panels (e.g. 心情温度 in Batch 2) -->
                     <div class="sidebar-placeholder">
@@ -1136,6 +1555,9 @@
             </div>
             <button id="publish-btn" aria-label="发表新动态">+</button>
         </div>
+
+        <!-- Monthly / yearly review modal -->
+        <div id="review-modal" role="dialog" aria-label="月度回顾"></div>
 
         <!-- Photo lightbox -->
         <div id="photo-lightbox" role="dialog" aria-label="照片预览">
@@ -1489,6 +1911,134 @@
                 }
             };
             pingsBackend.init();
+
+            // ===== Moods backend (心情温度) =====
+            // Schema: `moods` collection, doc id = `{date}_{author}`, fields: { author, date, value, ts }
+            // We subscribe to last 30 days. Each user can write/update their OWN doc for today.
+            const moodsBackend = {
+                cached: [],         // [{ id, author, date, value, ts }]
+                subscribers: [],
+                ready: false,
+                init() {
+                    if (!fbDb) return;
+                    fbAuth.onAuthStateChanged((user) => {
+                        if (!user) return;
+                        // Use a 31-day window (string compare on ISO date)
+                        const today = new Date();
+                        const cutoffDate = new Date(today.getTime() - 31 * 24 * 60 * 60 * 1000);
+                        const cutoffIso = cutoffDate.toISOString().slice(0, 10);
+                        fbDb.collection('moods')
+                            .where('date', '>=', cutoffIso)
+                            .onSnapshot((snap) => {
+                                this.cached = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                                this.ready = true;
+                                this.subscribers.forEach(cb => { try { cb(this.cached); } catch (e) { console.error(e); } });
+                            }, err => console.warn('[moods] listen failed', err));
+                    });
+                },
+                subscribe(cb) {
+                    this.subscribers.push(cb);
+                    if (this.ready) cb(this.cached);
+                },
+                todayIso() { return new Date().toISOString().slice(0, 10); },
+                getToday(who) {
+                    const today = this.todayIso();
+                    return this.cached.find(m => m.date === today && m.author === who) || null;
+                },
+                async setMine(value, who) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    const today = this.todayIso();
+                    const docId = `${today}_${who}`;
+                    await fbDb.collection('moods').doc(docId).set({
+                        author: who,
+                        date: today,
+                        value: Math.max(0, Math.min(10, Math.round(value))),
+                        ts: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                },
+                // Returns array of {date, eddy, melody} for the last `days` days (oldest first)
+                seriesLastDays(days) {
+                    const out = [];
+                    const today = new Date();
+                    for (let i = days - 1; i >= 0; i--) {
+                        const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+                        const iso = d.toISOString().slice(0, 10);
+                        const eddy = this.cached.find(m => m.date === iso && m.author === 'Eddy');
+                        const melody = this.cached.find(m => m.date === iso && m.author === 'Melody');
+                        out.push({
+                            date: iso,
+                            eddy: eddy ? eddy.value : null,
+                            melody: melody ? melody.value : null
+                        });
+                    }
+                    return out;
+                }
+            };
+            moodsBackend.init();
+
+            // ===== Wishes backend (共同心愿单) =====
+            // Schema: `wishes` collection, fields: { text, addedBy, addedAt, done, doneAt?, doneBy? }
+            const wishesBackend = {
+                cached: [],
+                subscribers: [],
+                ready: false,
+                init() {
+                    if (!fbDb) return;
+                    fbAuth.onAuthStateChanged((user) => {
+                        if (!user) return;
+                        fbDb.collection('wishes')
+                            .orderBy('addedAt', 'desc')
+                            .onSnapshot((snap) => {
+                                this.cached = snap.docs.map(d => {
+                                    const data = d.data();
+                                    return {
+                                        id: d.id,
+                                        text: data.text || '',
+                                        addedBy: data.addedBy || '',
+                                        addedAt: (data.addedAt && data.addedAt.toMillis) ? data.addedAt.toMillis() : Date.now(),
+                                        done: !!data.done,
+                                        doneBy: data.doneBy || '',
+                                        doneAt: (data.doneAt && data.doneAt.toMillis) ? data.doneAt.toMillis() : null
+                                    };
+                                });
+                                this.ready = true;
+                                this.subscribers.forEach(cb => { try { cb(this.cached); } catch (e) { console.error(e); } });
+                            }, err => console.warn('[wishes] listen failed', err));
+                    });
+                },
+                subscribe(cb) {
+                    this.subscribers.push(cb);
+                    if (this.ready) cb(this.cached);
+                },
+                async add(text, who) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('wishes').add({
+                        text,
+                        addedBy: who,
+                        addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        done: false
+                    });
+                },
+                async toggleDone(id, who) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    const ref = fbDb.collection('wishes').doc(id);
+                    await fbDb.runTransaction(async (tx) => {
+                        const snap = await tx.get(ref);
+                        const d = snap.data();
+                        const nowDone = !d.done;
+                        tx.update(ref, {
+                            done: nowDone,
+                            doneBy: nowDone ? who : null,
+                            doneAt: nowDone ? firebase.firestore.FieldValue.serverTimestamp() : null
+                        });
+                    });
+                },
+                async remove(id) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('wishes').doc(id).delete();
+                }
+            };
+            wishesBackend.init();
 
             // ===== Festival theme registry & date detection =====
             // Each festival declares particle palette overrides and a banner message.
@@ -2164,41 +2714,166 @@
             // (legacy buildMissBanner removed — content now lives in the always-visible left sidebar)
 
             function renderSidebar() {
+                // LEFT sidebar — 想念 panel
                 const sidebarEl = document.getElementById('moments-sidebar');
-                if (!sidebarEl) return;
-                const otherPerson = currentViewer === 'Eddy' ? 'Melody' : 'Eddy';
-                const myCount = pingsBackend.ready ? pingsBackend.pingsToday(currentViewer) : 0;
-                const theirCount = pingsBackend.ready ? pingsBackend.pingsToday(otherPerson) : 0;
+                if (sidebarEl) {
+                    const otherPerson = currentViewer === 'Eddy' ? 'Melody' : 'Eddy';
+                    const myCount = pingsBackend.ready ? pingsBackend.pingsToday(currentViewer) : 0;
+                    const theirCount = pingsBackend.ready ? pingsBackend.pingsToday(otherPerson) : 0;
+                    const recent = pingsBackend.ready ? pingsBackend.pingsLast24h() : [];
+                    const historyRows = recent.length === 0
+                        ? '<div class="miss-history-empty">还没有想念 …<br/>点中间的大心试试</div>'
+                        : recent.map(p => {
+                            const dt = new Date(p.ts);
+                            const hh = String(dt.getHours()).padStart(2, '0');
+                            const mm = String(dt.getMinutes()).padStart(2, '0');
+                            const target = p.from === 'Eddy' ? 'Melody' : 'Eddy';
+                            return `<div class="miss-history-row"><span><span class="who">${escapeHtml(p.from)}</span> 想 ${escapeHtml(target)}</span><span class="time">${hh}:${mm}</span></div>`;
+                        }).join('');
 
-                const recent = pingsBackend.ready ? pingsBackend.pingsLast24h() : [];
-                const historyRows = recent.length === 0
-                    ? '<div class="miss-history-empty">还没有想念 …<br/>点右上角的 💗 试试</div>'
-                    : recent.map(p => {
-                        const dt = new Date(p.ts);
-                        const hh = String(dt.getHours()).padStart(2, '0');
-                        const mm = String(dt.getMinutes()).padStart(2, '0');
-                        const target = p.from === 'Eddy' ? 'Melody' : 'Eddy';
-                        return `<div class="miss-history-row"><span><span class="who">${escapeHtml(p.from)}</span> 想 ${escapeHtml(target)}</span><span class="time">${hh}:${mm}</span></div>`;
-                    }).join('');
-
-                sidebarEl.innerHTML = `
-                    <div class="sidebar-panel">
-                        <div class="sidebar-panel-title"><span class="heart">❤</span><span>想念</span></div>
-                        <div class="miss-stats">
-                            <div class="miss-stat">
-                                <div class="miss-stat-num">${myCount}</div>
-                                <div class="miss-stat-label">你想 ${escapeHtml(otherPerson)}</div>
+                    sidebarEl.innerHTML = `
+                        <div class="sidebar-panel">
+                            <div class="sidebar-panel-title"><span class="heart">❤</span><span>想念</span></div>
+                            <div class="miss-stats">
+                                <div class="miss-stat">
+                                    <div class="miss-stat-num">${myCount}</div>
+                                    <div class="miss-stat-label">你想 ${escapeHtml(otherPerson)}</div>
+                                </div>
+                                <div class="miss-stat">
+                                    <div class="miss-stat-num">${theirCount}</div>
+                                    <div class="miss-stat-label">${escapeHtml(otherPerson)} 想你</div>
+                                </div>
                             </div>
-                            <div class="miss-stat">
-                                <div class="miss-stat-num">${theirCount}</div>
-                                <div class="miss-stat-label">${escapeHtml(otherPerson)} 想你</div>
-                            </div>
+                            <div class="miss-history-title">最近 24 小时</div>
+                            <div class="miss-history-list">${historyRows}</div>
                         </div>
-                        <div class="miss-history-title">最近 24 小时</div>
-                        <div class="miss-history-list">${historyRows}</div>
+                    `;
+                }
+                // RIGHT sidebar — 心情温度 panel (replaces the placeholder once moods is ready)
+                renderMoodPanel();
+            }
+
+            function moodValueText(v) {
+                if (v === null || v === undefined) return '—';
+                if (v <= 2) return `${v} · 不太好`;
+                if (v <= 4) return `${v} · 一般`;
+                if (v <= 6) return `${v} · 还行`;
+                if (v <= 8) return `${v} · 不错`;
+                return `${v} · 超棒`;
+            }
+
+            function buildMoodChartSvg(series) {
+                const W = 220, H = 80, P = 4;
+                const innerW = W - 2 * P;
+                const innerH = H - 2 * P;
+                const xStep = innerW / Math.max(1, series.length - 1);
+                const yFor = v => P + innerH * (1 - v / 10);
+                const polyFor = (key, color) => {
+                    const pts = [];
+                    for (let i = 0; i < series.length; i++) {
+                        const v = series[i][key];
+                        if (v === null) continue;
+                        pts.push(`${(P + i * xStep).toFixed(1)},${yFor(v).toFixed(1)}`);
+                    }
+                    if (pts.length === 0) return '';
+                    return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+                };
+                // baseline
+                const baseLines = `<line x1="${P}" y1="${P}" x2="${P}" y2="${H - P}" stroke="rgba(255,255,255,0.08)"/>
+                                   <line x1="${P}" y1="${H - P}" x2="${W - P}" y2="${H - P}" stroke="rgba(255,255,255,0.08)"/>`;
+                return `<svg class="mood-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+                    ${baseLines}
+                    ${polyFor('eddy', '#5d92ff')}
+                    ${polyFor('melody', '#ff6f9a')}
+                </svg>`;
+            }
+
+            let moodChartOpen = false;
+            function renderMoodPanel() {
+                const rightEl = document.getElementById('moments-sidebar-right');
+                if (!rightEl) return;
+                const eddyToday = moodsBackend.ready ? moodsBackend.getToday('Eddy') : null;
+                const melodyToday = moodsBackend.ready ? moodsBackend.getToday('Melody') : null;
+                const eddyValue = eddyToday ? eddyToday.value : 5;
+                const melodyValue = melodyToday ? melodyToday.value : 5;
+                const eddyIsMine = currentViewer === 'Eddy';
+                const series = moodsBackend.ready ? moodsBackend.seriesLastDays(14) : [];
+                const chartHtml = buildMoodChartSvg(series);
+
+                rightEl.innerHTML = `
+                    <div class="sidebar-panel">
+                        <div class="sidebar-panel-title"><span class="heart">🌡</span><span>今日心情</span></div>
+
+                        <div class="mood-block">
+                            <div class="mood-block-head">
+                                <span class="mood-block-name">Eddy</span>
+                                <span class="mood-block-value ${eddyToday ? '' : 'empty'}">${eddyToday ? moodValueText(eddyToday.value) : '今天还没记录'}</span>
+                            </div>
+                            <input type="range" min="0" max="10" step="1" value="${eddyValue}"
+                                   class="mood-slider ${eddyIsMine ? '' : 'readonly'}"
+                                   data-mood="Eddy" ${eddyIsMine ? '' : 'disabled'}>
+                            <div class="mood-emoji-row"><span>☹️</span><span>😊</span></div>
+                        </div>
+
+                        <div class="mood-block">
+                            <div class="mood-block-head">
+                                <span class="mood-block-name">Melody</span>
+                                <span class="mood-block-value ${melodyToday ? '' : 'empty'}">${melodyToday ? moodValueText(melodyToday.value) : '今天还没记录'}</span>
+                            </div>
+                            <input type="range" min="0" max="10" step="1" value="${melodyValue}"
+                                   class="mood-slider ${!eddyIsMine ? '' : 'readonly'}"
+                                   data-mood="Melody" ${!eddyIsMine ? '' : 'disabled'}>
+                            <div class="mood-emoji-row"><span>☹️</span><span>😊</span></div>
+                        </div>
+
+                        <button class="mood-toggle-chart" type="button">${moodChartOpen ? '收起 ▲' : '最近 14 天 ▼'}</button>
+                        <div class="mood-chart-wrap ${moodChartOpen ? 'open' : ''}">
+                            <div class="mood-chart-legend">
+                                <span><span class="dot" style="background:#5d92ff"></span>Eddy</span>
+                                <span><span class="dot" style="background:#ff6f9a"></span>Melody</span>
+                            </div>
+                            ${chartHtml}
+                        </div>
                     </div>
                 `;
             }
+
+            // Mood slider interactions (delegated on the right sidebar element)
+            document.getElementById('moments-sidebar-right').addEventListener('click', (e) => {
+                if (e.target.classList && e.target.classList.contains('mood-toggle-chart')) {
+                    moodChartOpen = !moodChartOpen;
+                    renderMoodPanel();
+                }
+            });
+            // Slider value commit — fires on 'change' (mouseup/touchend) so we don't write on every pixel drag
+            document.getElementById('moments-sidebar-right').addEventListener('change', async (e) => {
+                if (!(e.target && e.target.classList && e.target.classList.contains('mood-slider'))) return;
+                const who = e.target.getAttribute('data-mood');
+                if (who !== currentViewer) return;        // only allow editing your own
+                const value = parseInt(e.target.value, 10);
+                try {
+                    await moodsBackend.setMine(value, who);
+                } catch (err) {
+                    console.warn('[mood] save failed', err);
+                    alert('保存心情失败：' + err.message);
+                }
+            });
+            // Live update value text while dragging (no Firestore write)
+            document.getElementById('moments-sidebar-right').addEventListener('input', (e) => {
+                if (!(e.target && e.target.classList && e.target.classList.contains('mood-slider'))) return;
+                const who = e.target.getAttribute('data-mood');
+                if (who !== currentViewer) return;
+                const valEl = e.target.parentElement.querySelector('.mood-block-value');
+                if (valEl) {
+                    valEl.textContent = moodValueText(parseInt(e.target.value, 10));
+                    valEl.classList.remove('empty');
+                }
+            });
+
+            // Re-render right sidebar when mood data changes
+            moodsBackend.subscribe(() => {
+                if (momentsOverlay.classList.contains('open')) renderMoodPanel();
+            });
 
             function buildRecallCard() {
                 const recall = recallFromLastYear();
@@ -2221,15 +2896,150 @@
                     </div>`;
             }
 
-            function renderMomentsFeed() {
-                renderSidebar();
-                const moments = loadMoments().map(normalizeMoment).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                const topExtras = buildRecallCard();
-                if (moments.length === 0) {
-                    momentsFeed.innerHTML = topExtras + '<div class="moment-empty">还没有故事，点右下角 + 发表第一条吧 ❤</div>';
+            // ===== Monthly / yearly review =====
+            // Shows a banner above the feed near month-end (28th-31st) or month-start (1st-3rd).
+            // Click → modal with stats + 6 random photos + most-liked post for that period.
+
+            function reviewWindow() {
+                // Returns { kind: 'month'|'year'|null, year, month, label }
+                const now = new Date();
+                const day = now.getDate();
+                const m = now.getMonth() + 1;   // 1-12
+                const y = now.getFullYear();
+                // Year review around Jan 1-7 or Dec 26-31
+                if ((m === 1 && day <= 7) || (m === 12 && day >= 26)) {
+                    const targetY = (m === 1) ? y - 1 : y;
+                    return { kind: 'year', year: targetY, month: null, label: `${targetY} 年精选` };
+                }
+                // Month review around the 28th-31st or 1st-3rd
+                if (day >= 28 || day <= 3) {
+                    let targetM = day <= 3 ? m - 1 : m;
+                    let targetY = y;
+                    if (targetM === 0) { targetM = 12; targetY = y - 1; }
+                    return { kind: 'month', year: targetY, month: targetM, label: `${targetY} 年 ${targetM} 月精选` };
+                }
+                return { kind: null };
+            }
+
+            function buildReviewBanner() {
+                const w = reviewWindow();
+                if (!w.kind) return '';
+                return `
+                    <div class="review-banner" id="review-banner">
+                        <span class="sparkle">✨</span>
+                        <div class="review-banner-text"><b>${escapeHtml(w.label)}</b> 已经生成</div>
+                        <span class="review-banner-cta">点击查看 →</span>
+                    </div>`;
+            }
+
+            function momentsInPeriod(kind, year, month) {
+                const all = momentsBackend.cached || [];
+                return all.filter(mm => {
+                    if (!mm.date) return false;
+                    const [yy, mo] = mm.date.split('-').map(s => parseInt(s, 10));
+                    if (kind === 'year') return yy === year;
+                    if (kind === 'month') return yy === year && mo === month;
+                    return false;
+                });
+            }
+
+            function pingsInPeriod(kind, year, month) {
+                const all = pingsBackend.cached || [];
+                return all.filter(p => {
+                    const d = new Date(p.ts);
+                    if (kind === 'year') return d.getFullYear() === year;
+                    if (kind === 'month') return d.getFullYear() === year && (d.getMonth() + 1) === month;
+                    return false;
+                });
+            }
+
+            function openReviewModal() {
+                const w = reviewWindow();
+                if (!w.kind) return;
+                const ms = momentsInPeriod(w.kind, w.year, w.month);
+                const ps = pingsInPeriod(w.kind, w.year, w.month);
+
+                // Aggregate stats
+                const totalLikes = ms.reduce((acc, m) => acc + (m.likes ? m.likes.length : 0), 0);
+                const totalComments = ms.reduce((acc, m) => acc + (m.comments ? m.comments.length : 0), 0);
+
+                // Top post: most likes + comments combined
+                let top = null;
+                let topScore = -1;
+                for (const m of ms) {
+                    const score = (m.likes ? m.likes.length : 0) * 2 + (m.comments ? m.comments.length : 0);
+                    if (score > topScore) { topScore = score; top = m; }
+                }
+                const topAvatar = top && top.author === 'Melody' ? AVATAR_SVG_MELODY : AVATAR_SVG_EDDY;
+                const topThumb = (top && top.photos && top.photos[0]) ? `<img src="${escapeHtml(top.photos[0])}" alt=""/>` : '';
+                const topHtml = top ? `
+                    <div class="review-top-card">
+                        <div class="top-thumb">${topThumb}</div>
+                        <div class="top-info">
+                            <div class="top-author">${escapeHtml(top.author)}</div>
+                            <div class="top-title">${escapeHtml(top.title || '（无标题）')}</div>
+                            <div class="top-stats">❤ ${(top.likes || []).length}   💬 ${(top.comments || []).length}</div>
+                        </div>
+                    </div>` : '<div style="color:rgba(255,255,255,0.5);font-size:13px;text-align:center;padding:8px 0">本期没有动态…</div>';
+
+                // 6 random photo URLs from the period
+                const allPhotos = ms.flatMap(m => (m.photos || []).filter(p => p && !p.startsWith('placeholder')));
+                const shuffled = allPhotos.slice().sort(() => Math.random() - 0.5).slice(0, 6);
+                const photoGrid = shuffled.length > 0
+                    ? `<div class="review-photos">${shuffled.map(p => `<div class="review-photo"><img src="${escapeHtml(p)}" alt=""/></div>`).join('')}</div>`
+                    : '<div style="color:rgba(255,255,255,0.4);font-size:13px;text-align:center;padding:14px 0">本期没有照片</div>';
+
+                const modal = document.getElementById('review-modal');
+                modal.innerHTML = `
+                    <div class="review-card">
+                        <h3 class="review-card-title">${escapeHtml(w.label)}</h3>
+                        <div class="review-card-sub">你和 Melody · 一段被云端记住的小日子 ❤</div>
+                        <div class="review-stats">
+                            <div class="review-stat"><div class="review-stat-num">${ms.length}</div><div class="review-stat-label">动态</div></div>
+                            <div class="review-stat"><div class="review-stat-num">${totalLikes}</div><div class="review-stat-label">点赞</div></div>
+                            <div class="review-stat"><div class="review-stat-num">${totalComments}</div><div class="review-stat-label">留言</div></div>
+                            <div class="review-stat"><div class="review-stat-num">${ps.length}</div><div class="review-stat-label">想念</div></div>
+                        </div>
+                        <div class="review-section-title">🏆 最热的一条</div>
+                        ${topHtml}
+                        <div class="review-section-title">📸 ${shuffled.length} 张随机回忆</div>
+                        ${photoGrid}
+                        <button type="button" class="review-close" id="review-close-btn">关上 ❤</button>
+                    </div>`;
+                modal.classList.add('open');
+            }
+
+            function closeReviewModal() {
+                const modal = document.getElementById('review-modal');
+                modal.classList.remove('open');
+            }
+
+            // Bind: click banner → open modal; click outside or × button → close
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#review-banner')) {
+                    openReviewModal();
                     return;
                 }
-                momentsFeed.innerHTML = topExtras + moments.map(m => {
+                if (e.target.closest('#review-close-btn')) {
+                    closeReviewModal();
+                    return;
+                }
+                if (e.target.id === 'review-modal') {
+                    closeReviewModal();
+                }
+            });
+
+            function renderMomentsFeed() {
+                renderSidebar();
+                const pane = document.getElementById('feed-pane-moments');
+                if (!pane) return;
+                const moments = loadMoments().map(normalizeMoment).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                const topExtras = buildReviewBanner() + buildRecallCard();
+                if (moments.length === 0) {
+                    pane.innerHTML = topExtras + '<div class="moment-empty">还没有故事，点右下角 + 发表第一条吧 ❤</div>';
+                    return;
+                }
+                pane.innerHTML = topExtras + moments.map(m => {
                     const avatar = m.author === 'Melody' ? AVATAR_SVG_MELODY : AVATAR_SVG_EDDY;
                     const avatarClass = m.author === 'Melody' ? 'moment-avatar melody' : 'moment-avatar';
                     const photos = (m.photos || []);
@@ -2291,6 +3101,140 @@
             // Re-render the feed when new pings arrive (banner counts update live)
             pingsBackend.subscribe(() => {
                 if (momentsOverlay.classList.contains('open')) renderMomentsFeed();
+            });
+
+            // ===== Wishlist render + tab switching =====
+            const WISH_TINY_EDDY = '<svg viewBox="0 0 40 40"><circle cx="20" cy="16" r="9" fill="#ffe0c2"/><path d="M11 13c0-5 4-8 9-8s9 3 9 8c0 0-2 1-9 1s-9-1-9-1z" fill="#3a2018"/><path d="M14 30l-2 6h16l-2-6c-1-1-4-2-6-2s-5 1-6 2z" fill="#5d4f8a"/></svg>';
+            const WISH_TINY_MELODY = '<svg viewBox="0 0 40 40"><path d="M9 25c0-3 1-8 2-11 1-3 4-5 9-5s8 2 9 5c1 3 2 8 2 11l-2 2c0 0-1-6-2-7l-1 4-1-5-2 4-1-5-2 4-1-5-2 4-1-4c-1 1-2 7-2 7z" fill="#5b2e2e"/><circle cx="20" cy="17" r="9" fill="#ffe0c2"/><path d="M14 30l-2 6h16l-2-6c-1-1-4-2-6-2s-5 1-6 2z" fill="#ff8fc1"/></svg>';
+
+            function renderWishes() {
+                const pane = document.getElementById('feed-pane-wishes');
+                if (!pane) return;
+                const wishes = wishesBackend.cached.slice();
+                // Pending first (newest at top), then done (newest done first)
+                const pending = wishes.filter(w => !w.done).sort((a, b) => b.addedAt - a.addedAt);
+                const done = wishes.filter(w => w.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+
+                const renderItem = (w) => {
+                    const avatar = w.addedBy === 'Melody' ? WISH_TINY_MELODY : WISH_TINY_EDDY;
+                    const dt = new Date(w.addedAt);
+                    const dateStr = `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
+                    return `
+                        <div class="wish-item ${w.done ? 'done' : ''}" data-id="${escapeHtml(w.id)}">
+                            <button class="wish-checkbox" data-act="wish-toggle" data-id="${escapeHtml(w.id)}" aria-label="${w.done ? '取消完成' : '标记完成'}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </button>
+                            <div class="wish-body">
+                                <div class="wish-text">${escapeHtml(w.text)}</div>
+                                <div class="wish-meta">
+                                    <span class="wish-meta-avatar">${avatar}</span>
+                                    <span>${escapeHtml(w.addedBy)}</span>
+                                    <span>· ${dateStr}</span>
+                                    ${w.done && w.doneBy ? `<span>· ${escapeHtml(w.doneBy)} 完成 ✿</span>` : ''}
+                                </div>
+                            </div>
+                            <button class="wish-delete" data-act="wish-delete" data-id="${escapeHtml(w.id)}" aria-label="删除">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                            </button>
+                        </div>`;
+                };
+
+                const inputRow = `
+                    <div class="wish-add-row">
+                        <input type="text" id="wish-input" placeholder="想一起做什么…" maxlength="80" autocomplete="off">
+                        <button type="button" id="wish-add-btn">添加 ❤</button>
+                    </div>`;
+
+                let body = inputRow;
+                if (pending.length === 0 && done.length === 0) {
+                    body += '<div class="wish-empty">还没有心愿…<br/>写下你和 ' + (currentViewer === 'Eddy' ? 'Melody' : 'Eddy') + ' 想一起做的事吧 ✿</div>';
+                } else {
+                    if (pending.length > 0) {
+                        body += `<div class="wish-section-title">想做的（${pending.length}）</div>`;
+                        body += pending.map(renderItem).join('');
+                    }
+                    if (done.length > 0) {
+                        body += `<div class="wish-section-title">已完成（${done.length}） ✿</div>`;
+                        body += done.map(renderItem).join('');
+                    }
+                }
+                pane.innerHTML = body;
+            }
+
+            // Tab switching
+            let activeFeedTab = 'moments';
+            const feedTabs = document.getElementById('feed-tabs');
+            const feedPaneMoments = document.getElementById('feed-pane-moments');
+            const feedPaneWishes = document.getElementById('feed-pane-wishes');
+            feedTabs.addEventListener('click', (e) => {
+                const btn = e.target.closest('.feed-tab');
+                if (!btn) return;
+                const tab = btn.getAttribute('data-tab');
+                if (tab === activeFeedTab) return;
+                activeFeedTab = tab;
+                feedTabs.querySelectorAll('.feed-tab').forEach(b => b.classList.toggle('active', b === btn));
+                feedPaneMoments.classList.toggle('hidden', tab !== 'moments');
+                feedPaneWishes.classList.toggle('hidden', tab !== 'wishes');
+                // The floating "+" publish button only makes sense for moments;
+                // wishes have their own inline input row.
+                const pbtn = document.getElementById('publish-btn');
+                if (pbtn) pbtn.style.display = tab === 'moments' ? '' : 'none';
+                if (tab === 'wishes') renderWishes();
+            });
+
+            // Re-render wishes live when Firestore changes (only if active)
+            wishesBackend.subscribe(() => {
+                if (momentsOverlay.classList.contains('open') && activeFeedTab === 'wishes') renderWishes();
+            });
+
+            // Wishlist interactions — delegated on the wishes pane
+            feedPaneWishes.addEventListener('click', async (e) => {
+                // Add button
+                if (e.target.closest('#wish-add-btn')) {
+                    const input = document.getElementById('wish-input');
+                    const text = (input.value || '').trim();
+                    if (!text) return;
+                    const addBtn = document.getElementById('wish-add-btn');
+                    addBtn.disabled = true;
+                    try {
+                        await wishesBackend.add(text, currentViewer);
+                        input.value = '';
+                        input.focus();
+                    } catch (err) {
+                        console.warn('add wish failed', err);
+                        alert('添加心愿失败：' + err.message);
+                    } finally {
+                        addBtn.disabled = false;
+                    }
+                    return;
+                }
+                // Toggle checkbox
+                const toggleBtn = e.target.closest('button[data-act="wish-toggle"]');
+                if (toggleBtn) {
+                    const id = toggleBtn.getAttribute('data-id');
+                    toggleBtn.disabled = true;
+                    try { await wishesBackend.toggleDone(id, currentViewer); }
+                    catch (err) { console.warn('toggle wish failed', err); }
+                    finally { toggleBtn.disabled = false; }
+                    return;
+                }
+                // Delete
+                const delBtn = e.target.closest('button[data-act="wish-delete"]');
+                if (delBtn) {
+                    if (!confirm('确定要删除这条心愿吗？')) return;
+                    const id = delBtn.getAttribute('data-id');
+                    delBtn.disabled = true;
+                    try { await wishesBackend.remove(id); }
+                    catch (err) { console.warn('remove wish failed', err); alert('删除失败：' + err.message); delBtn.disabled = false; }
+                }
+            });
+            // Enter key in wish input adds
+            feedPaneWishes.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target && e.target.id === 'wish-input') {
+                    e.preventDefault();
+                    const addBtn = document.getElementById('wish-add-btn');
+                    if (addBtn) addBtn.click();
+                }
             });
 
             // Like / comment / open-comments handlers (delegated, async with Firebase)
@@ -2385,9 +3329,11 @@
             momentsClose.addEventListener('click', closeMoments);
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
+                    const reviewOpen = document.getElementById('review-modal')?.classList.contains('open');
                     if (publishModal.classList.contains('open')) closePublish();
-                    else if (momentsOverlay.classList.contains('open')) closeMoments();
+                    else if (reviewOpen) closeReviewModal();
                     else if (lightbox.classList.contains('open')) lightbox.classList.remove('open');
+                    else if (momentsOverlay.classList.contains('open')) closeMoments();
                 }
             });
 
