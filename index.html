@@ -80,6 +80,131 @@
             transform: scale(0.92);
         }
 
+        /* Floating "想你了，已送达" toast that fades in near the top after a heart-tap ping */
+        .miss-toast {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translate(-50%, -8px);
+            z-index: 26;
+            background: rgba(255, 130, 170, 0.92);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-family: "Long Cang", cursive;
+            font-size: 15px;
+            letter-spacing: 2px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 6px 20px rgba(255, 100, 160, 0.45);
+        }
+        .miss-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        /* ===== Miss-you banner (in moments feed top) ===== */
+        .miss-banner {
+            margin: 0 0 8px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: linear-gradient(160deg, rgba(255, 130, 170, 0.18), rgba(190, 100, 200, 0.12));
+            border: 1px solid rgba(255, 180, 210, 0.3);
+            color: rgba(255, 255, 255, 0.92);
+            font-family: "Long Cang", cursive;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .miss-banner:hover { background: linear-gradient(160deg, rgba(255, 130, 170, 0.28), rgba(190, 100, 200, 0.2)); }
+        .miss-banner-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+        .miss-banner-summary .heart { color: #ff6f9a; font-size: 18px; }
+        .miss-banner-detail {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.15);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+        .miss-banner.open .miss-banner-detail { display: block; }
+        .miss-banner-row { margin: 2px 0; }
+        .miss-banner-row .who { color: #ffc4d8; margin-right: 6px; }
+
+        /* ===== Last-year recall card (in moments feed top) ===== */
+        .recall-card {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            margin: 0 0 12px;
+            border-radius: 14px;
+            background: linear-gradient(160deg, rgba(255, 200, 230, 0.14), rgba(180, 130, 200, 0.08));
+            border: 1px dashed rgba(255, 180, 210, 0.35);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .recall-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 130, 170, 0.25); }
+        .recall-card-tag {
+            font-family: "Long Cang", cursive;
+            color: #ffc4d8;
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .recall-card-title {
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 17px;
+        }
+        .recall-card-snippet {
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .recall-card-thumb {
+            flex: 0 0 64px;
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255, 200, 220, 0.25), rgba(160, 120, 200, 0.25));
+        }
+        .recall-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ===== Festival banner (top of canvas area, fades in) ===== */
+        #festival-banner {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 24;
+            padding: 8px 18px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(255, 130, 170, 0.7), rgba(190, 100, 200, 0.55));
+            border: 1px solid rgba(255, 200, 230, 0.5);
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 22px rgba(255, 100, 160, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            white-space: nowrap;
+        }
+        #festival-banner.show { opacity: 1; }
+
         /* ===== Moments entry (top-left) ===== */
         #moments-entry {
             position: absolute;
@@ -210,10 +335,142 @@
             text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
         }
 
-        .moments-feed {
-            max-width: 640px;
+        /* 3-column symmetric layout: [想念 left] [朋友圈 center] [预留 right] */
+        .moments-content {
+            max-width: 1240px;
             margin: 0 auto;
             padding: 0 16px 140px;
+            display: grid;
+            grid-template-columns: 240px minmax(0, 1fr) 240px;
+            gap: 24px;
+            align-items: start;
+        }
+        .moments-feed {
+            min-width: 0;   /* prevent grid blowout when text is long */
+        }
+        .moments-sidebar, .moments-sidebar-right {
+            position: sticky;
+            top: 80px;       /* sit below the sticky header */
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Below 1100px: right column collapses (left + center stay).
+           Media queries below the base rules so they actually override `display: flex`. */
+        @media (max-width: 1099px) {
+            .moments-content {
+                grid-template-columns: 240px minmax(0, 1fr);
+            }
+            .moments-sidebar-right { display: none; }
+        }
+        /* Below 768px: everything stacks single-column */
+        @media (max-width: 768px) {
+            .moments-content {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .moments-sidebar, .moments-sidebar-right {
+                position: static;
+                top: auto;
+            }
+        }
+
+        /* Placeholder for the right column until Batch 2 fills it with mood thermometer */
+        .sidebar-placeholder {
+            background: linear-gradient(160deg, rgba(180, 130, 200, 0.08), rgba(140, 80, 200, 0.04));
+            border: 1px dashed rgba(255, 180, 210, 0.18);
+            border-radius: 16px;
+            padding: 18px 16px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: "Long Cang", cursive;
+            font-size: 13px;
+            line-height: 1.7;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .sidebar-placeholder .ph-title {
+            color: rgba(255, 200, 220, 0.6);
+            font-size: 15px;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .sidebar-panel {
+            background: linear-gradient(160deg, rgba(255, 140, 180, 0.10), rgba(140, 80, 200, 0.08));
+            border: 1px solid rgba(255, 180, 210, 0.18);
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.92);
+        }
+        .sidebar-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            color: #ffc4d8;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+        }
+        .sidebar-panel-title .heart { color: #ff6f9a; }
+
+        /* Miss panel specifics */
+        .miss-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .miss-stat {
+            text-align: center;
+            padding: 10px 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .miss-stat-num {
+            font-size: 28px;
+            color: #ff6f9a;
+            line-height: 1;
+            margin-bottom: 4px;
+            letter-spacing: 0;
+        }
+        .miss-stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+            letter-spacing: 1px;
+        }
+        .miss-history-title {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.55);
+            margin: 4px 0 6px;
+            letter-spacing: 1px;
+        }
+        .miss-history-list {
+            max-height: 220px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.78);
+        }
+        .miss-history-list::-webkit-scrollbar { width: 4px; }
+        .miss-history-list::-webkit-scrollbar-thumb { background: rgba(255, 180, 210, 0.3); border-radius: 4px; }
+        .miss-history-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .miss-history-row:last-child { border-bottom: none; }
+        .miss-history-row .who { color: #ffc4d8; }
+        .miss-history-row .time { color: rgba(255, 255, 255, 0.5); font-size: 12px; }
+        .miss-history-empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            padding: 12px 0;
+            font-size: 13px;
         }
 
         .moment-card {
@@ -836,6 +1093,9 @@
     <div id="wrap">
         <canvas id="stage"></canvas>
         <button id="mute-btn" aria-label="切换静音"></button>
+        <!-- Heart tap registers a "miss-you" ping; toast shows brief confirmation -->
+        <div class="miss-toast" id="miss-toast">想你了，已送达 ❤</div>
+        <div id="festival-banner"></div>
         <button id="moments-entry" aria-label="打开我们的朋友圈">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 21s-7-4.35-9.5-9.05C.93 9.16 2.4 5 6.2 5c2.1 0 3.5 1.2 4.3 2.4l1.5 2.05 1.5-2.05C14.3 6.2 15.7 5 17.8 5c3.8 0 5.27 4.16 3.7 6.95C19 16.65 12 21 12 21z"
@@ -859,7 +1119,21 @@
             <div class="moments-cover">
                 <div class="moments-cover-title">Pour Eddy &amp; Melody</div>
             </div>
-            <div class="moments-feed" id="moments-feed"></div>
+            <div class="moments-content">
+                <aside class="moments-sidebar" id="moments-sidebar">
+                    <!-- LEFT column: 想念 panel (always present); future panels stack below -->
+                </aside>
+                <div class="moments-feed" id="moments-feed"></div>
+                <aside class="moments-sidebar-right" id="moments-sidebar-right">
+                    <!-- RIGHT column: reserved for future panels (e.g. 心情温度 in Batch 2) -->
+                    <div class="sidebar-placeholder">
+                        <div class="ph-title">✿ 这里待启用</div>
+                        Batch 2 会放<br/>
+                        <b style="color:#ffc4d8">心情温度</b><br/>
+                        或你想加的功能
+                    </div>
+                </aside>
+            </div>
             <button id="publish-btn" aria-label="发表新动态">+</button>
         </div>
 
@@ -1162,6 +1436,124 @@
             };
             momentsBackend.init();
 
+            // ===== Pings backend (miss-you button) =====
+            // Each ping is a tiny doc: { from: 'Eddy'|'Melody', ts: serverTimestamp() }
+            // The 24h window of pings is subscribed in real time so banners + toasts update live.
+            const pingsBackend = {
+                cached: [],        // most-recent first, capped at recent 200
+                subscribers: [],
+                ready: false,
+                init() {
+                    if (!fbDb) return;
+                    fbAuth.onAuthStateChanged((user) => {
+                        if (!user) return;
+                        // Subscribe to last 7 days of pings (we'll filter to 24h client-side for the banner)
+                        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                        fbDb.collection('pings')
+                            .orderBy('ts', 'desc')
+                            .limit(200)
+                            .onSnapshot((snap) => {
+                                this.cached = snap.docs.map(d => {
+                                    const data = d.data();
+                                    return {
+                                        id: d.id,
+                                        from: data.from,
+                                        ts: (data.ts && data.ts.toMillis) ? data.ts.toMillis() : Date.now()
+                                    };
+                                }).filter(p => p.ts >= cutoff);
+                                this.ready = true;
+                                this.subscribers.forEach(cb => { try { cb(this.cached); } catch (e) { console.error(e); } });
+                            }, err => console.warn('[pings] listen failed', err));
+                    });
+                },
+                subscribe(cb) {
+                    this.subscribers.push(cb);
+                    if (this.ready) cb(this.cached);
+                },
+                pingsToday(who) {
+                    // Count pings sent by `who` today (since local midnight)
+                    const startOfDay = new Date();
+                    startOfDay.setHours(0, 0, 0, 0);
+                    return this.cached.filter(p => p.from === who && p.ts >= startOfDay.getTime()).length;
+                },
+                pingsLast24h() {
+                    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+                    return this.cached.filter(p => p.ts >= cutoff);
+                },
+                async add(who) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('pings').add({
+                        from: who,
+                        ts: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            };
+            pingsBackend.init();
+
+            // ===== Festival theme registry & date detection =====
+            // Each festival declares particle palette overrides and a banner message.
+            // Lunar holidays use lunar-javascript library (loaded on demand from CDN).
+            const FESTIVALS = [
+                { id: 'anniversary',  match: { month: 5,  day: 17 }, banner: '🌸 我们的纪念日，相遇于 2025.05.17 ❤',
+                  theme: { hueCenter: 45, hueEdge: 15 }, fireworks: true },
+                { id: 'eddy-birthday',match: { month: 3,  day: 9  }, banner: '🎂 Eddy 的生日，今天属于你 ❤',
+                  theme: { hueCenter: 200, hueEdge: 210 }, fireworks: true },
+                { id: 'melody-birthday',match: { month: 9, day: 24 }, banner: '🎂 Melody 的生日，世界因你而美好 ❤',
+                  theme: { hueCenter: 310, hueEdge: 290 }, fireworks: true },
+                { id: 'valentines',   match: { month: 2,  day: 14 }, banner: '🌹 情人节快乐 — 是你呀 ❤',
+                  theme: { hueCenter: 350, hueEdge: 340 } },
+                { id: 'christmas',    match: { month: 12, day: 25 }, banner: '🎄 圣诞快乐，my dearest Melody',
+                  theme: { hueCenter: 0, hueEdge: 130 } },
+                { id: 'new-year',     match: { month: 1,  day: 1  }, banner: '🎆 新的一年，继续和你一起',
+                  theme: { hueCenter: 45, hueEdge: 30 }, fireworks: true },
+                // Lunar holidays — match.lunarMonth + match.lunarDay (resolved via lunar-javascript)
+                { id: 'spring-festival', match: { lunarMonth: 1,  lunarDay: 1  }, banner: '🏮 春节快乐 — 想念家人也想念你',
+                  theme: { hueCenter: 15, hueEdge: 0 }, fireworks: true },
+                { id: 'qixi',            match: { lunarMonth: 7,  lunarDay: 7  }, banner: '🪶 七夕 — 鹊桥也比不过我们的距离短',
+                  theme: { hueCenter: 320, hueEdge: 290 } },
+                { id: 'mid-autumn',      match: { lunarMonth: 8,  lunarDay: 15 }, banner: '🌕 中秋 — 但愿人长久，千里共婵娟',
+                  theme: { hueCenter: 50, hueEdge: 40 } }
+            ];
+
+            let LunarLib = null;  // populated lazily
+            function tryLoadLunarLib() {
+                if (LunarLib || window.__lunarLoading) return;
+                window.__lunarLoading = true;
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.13/lunar.js';
+                s.onload = () => { LunarLib = window.Lunar; };
+                s.onerror = () => console.warn('[festival] lunar lib failed to load (Chinese lunar holidays will not trigger)');
+                document.head.appendChild(s);
+            }
+            tryLoadLunarLib();
+
+            function activeFestival() {
+                const now = new Date();
+                const m = now.getMonth() + 1, d = now.getDate();
+                for (const f of FESTIVALS) {
+                    if (f.match.month && f.match.month === m && f.match.day === d) return f;
+                    if (f.match.lunarMonth && LunarLib) {
+                        try {
+                            const ld = LunarLib.fromDate(now);
+                            if (ld.getMonth() === f.match.lunarMonth && ld.getDay() === f.match.lunarDay) return f;
+                        } catch (e) { /* lib not ready */ }
+                    }
+                }
+                return null;
+            }
+
+            // ===== "Last year today" helper =====
+            // Given moments cache, find one whose `date` is exactly one year ago today
+            function recallFromLastYear() {
+                if (!momentsBackend.cached || momentsBackend.cached.length === 0) return null;
+                const today = new Date();
+                const targetYear = today.getFullYear() - 1;
+                const targetMonth = today.getMonth() + 1;
+                const targetDay = today.getDate();
+                const targetDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
+                return momentsBackend.cached.find(m => m.date === targetDate) || null;
+            }
+
             // ===== Element refs =====
             const canvas = document.getElementById('stage');
             const ctx = canvas.getContext('2d');
@@ -1448,6 +1840,12 @@
                 const dy = (y - cy) / HEART_RADIUS_Y;
                 return dx * dx + dy * dy < 1;
             }
+            // Tracks the last time a heart-tap ping was recorded (cooldown to prevent spam from
+            // rapid visual taps; the ripple/burst animation still fires every tap, only the
+            // ping write is throttled).
+            let lastMissPingTime = 0;
+            const MISS_PING_COOLDOWN_MS = 1500;
+
             function triggerHeartTap(x, y) {
                 // Expanding ripple
                 state.ripples.push({ x, y, radius: 8, alpha: 0.9 });
@@ -1467,6 +1865,24 @@
                     const kick = 18 * falloff + 4;
                     p.burstX += (dx / len) * kick;
                     p.burstY += (dy / len) * kick;
+                }
+
+                // ===== Record a "miss-you" ping (with cooldown) =====
+                const now = Date.now();
+                if (now - lastMissPingTime < MISS_PING_COOLDOWN_MS) return;
+                lastMissPingTime = now;
+
+                const toast = document.getElementById('miss-toast');
+                if (toast) {
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 1400);
+                }
+                if (typeof currentViewer !== 'undefined' && pingsBackend) {
+                    pingsBackend.add(currentViewer).catch(err => {
+                        console.warn('[miss] ping failed', err);
+                        if (toast) toast.textContent = '发送失败，稍后重试…';
+                        setTimeout(() => { if (toast) toast.textContent = '想你了，已送达 ❤'; }, 2000);
+                    });
                 }
             }
             // ===== "Melody" text morph =====
@@ -1586,6 +2002,37 @@
                 updateMuteIcon();
             });
             updateMuteIcon();
+
+            // (The previous standalone miss-btn was removed — clicking the big heart in the
+            //  middle of the page now both triggers ripple/burst AND records a miss-you ping.
+            //  See triggerHeartTap() above.)
+
+            // ===== Festival theme — apply on load + once per day =====
+            // We don't recompute every frame; just once at startup and then once per hour
+            // (no festival changes mid-day except at midnight, and we accept a delay).
+            const festivalBanner = document.getElementById('festival-banner');
+            let festivalOverride = null;  // when active, overrides themeBlend target
+            function checkAndApplyFestival() {
+                const f = activeFestival();
+                if (f) {
+                    festivalOverride = f.theme;
+                    festivalBanner.textContent = f.banner;
+                    festivalBanner.classList.add('show');
+                    if (f.fireworks) {
+                        // Bonus: 3 fireworks across the upper canvas
+                        setTimeout(() => spawnFirework(state.w * 0.3, state.h * 0.3), 300);
+                        setTimeout(() => spawnFirework(state.w * 0.7, state.h * 0.35), 900);
+                        setTimeout(() => spawnFirework(state.w * 0.5, state.h * 0.25), 1500);
+                    }
+                } else {
+                    festivalOverride = null;
+                    festivalBanner.classList.remove('show');
+                }
+            }
+            // Check at startup (delay 2s to wait for canvas + lunar lib)
+            setTimeout(checkAndApplyFestival, 2000);
+            // Re-check every hour (catches midnight rollover)
+            setInterval(checkAndApplyFestival, 60 * 60 * 1000);
 
             // ===== Mouse / touch =====
             function handleTap(x, y) {
@@ -1714,13 +2161,75 @@
                     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             }
 
+            // (legacy buildMissBanner removed — content now lives in the always-visible left sidebar)
+
+            function renderSidebar() {
+                const sidebarEl = document.getElementById('moments-sidebar');
+                if (!sidebarEl) return;
+                const otherPerson = currentViewer === 'Eddy' ? 'Melody' : 'Eddy';
+                const myCount = pingsBackend.ready ? pingsBackend.pingsToday(currentViewer) : 0;
+                const theirCount = pingsBackend.ready ? pingsBackend.pingsToday(otherPerson) : 0;
+
+                const recent = pingsBackend.ready ? pingsBackend.pingsLast24h() : [];
+                const historyRows = recent.length === 0
+                    ? '<div class="miss-history-empty">还没有想念 …<br/>点右上角的 💗 试试</div>'
+                    : recent.map(p => {
+                        const dt = new Date(p.ts);
+                        const hh = String(dt.getHours()).padStart(2, '0');
+                        const mm = String(dt.getMinutes()).padStart(2, '0');
+                        const target = p.from === 'Eddy' ? 'Melody' : 'Eddy';
+                        return `<div class="miss-history-row"><span><span class="who">${escapeHtml(p.from)}</span> 想 ${escapeHtml(target)}</span><span class="time">${hh}:${mm}</span></div>`;
+                    }).join('');
+
+                sidebarEl.innerHTML = `
+                    <div class="sidebar-panel">
+                        <div class="sidebar-panel-title"><span class="heart">❤</span><span>想念</span></div>
+                        <div class="miss-stats">
+                            <div class="miss-stat">
+                                <div class="miss-stat-num">${myCount}</div>
+                                <div class="miss-stat-label">你想 ${escapeHtml(otherPerson)}</div>
+                            </div>
+                            <div class="miss-stat">
+                                <div class="miss-stat-num">${theirCount}</div>
+                                <div class="miss-stat-label">${escapeHtml(otherPerson)} 想你</div>
+                            </div>
+                        </div>
+                        <div class="miss-history-title">最近 24 小时</div>
+                        <div class="miss-history-list">${historyRows}</div>
+                    </div>
+                `;
+            }
+
+            function buildRecallCard() {
+                const recall = recallFromLastYear();
+                if (!recall) return '';
+                const author = escapeHtml(recall.author);
+                const title = recall.title ? `「${escapeHtml(recall.title)}」` : '';
+                const snippet = recall.text ? escapeHtml(recall.text) : (recall.location ? '📍' + escapeHtml(recall.location) : '');
+                const firstPhoto = (recall.photos && recall.photos[0]) || '';
+                const thumb = firstPhoto && !firstPhoto.startsWith('placeholder')
+                    ? `<div class="recall-card-thumb"><img src="${escapeHtml(firstPhoto)}" alt=""/></div>`
+                    : `<div class="recall-card-thumb"></div>`;
+                return `
+                    <div class="recall-card" data-recall-id="${escapeHtml(recall.id)}">
+                        ${thumb}
+                        <div style="flex:1;min-width:0">
+                            <div class="recall-card-tag">🌸 一年前的今天 · ${author}</div>
+                            <div class="recall-card-title">${title || '（无标题）'}</div>
+                            ${snippet ? `<div class="recall-card-snippet">${snippet}</div>` : ''}
+                        </div>
+                    </div>`;
+            }
+
             function renderMomentsFeed() {
+                renderSidebar();
                 const moments = loadMoments().map(normalizeMoment).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                const topExtras = buildRecallCard();
                 if (moments.length === 0) {
-                    momentsFeed.innerHTML = '<div class="moment-empty">还没有故事，点右下角 + 发表第一条吧 ❤</div>';
+                    momentsFeed.innerHTML = topExtras + '<div class="moment-empty">还没有故事，点右下角 + 发表第一条吧 ❤</div>';
                     return;
                 }
-                momentsFeed.innerHTML = moments.map(m => {
+                momentsFeed.innerHTML = topExtras + moments.map(m => {
                     const avatar = m.author === 'Melody' ? AVATAR_SVG_MELODY : AVATAR_SVG_EDDY;
                     const avatarClass = m.author === 'Melody' ? 'moment-avatar melody' : 'moment-avatar';
                     const photos = (m.photos || []);
@@ -1779,9 +2288,32 @@
             momentsBackend.subscribe(() => {
                 if (momentsOverlay.classList.contains('open')) renderMomentsFeed();
             });
+            // Re-render the feed when new pings arrive (banner counts update live)
+            pingsBackend.subscribe(() => {
+                if (momentsOverlay.classList.contains('open')) renderMomentsFeed();
+            });
 
             // Like / comment / open-comments handlers (delegated, async with Firebase)
             momentsFeed.addEventListener('click', async (e) => {
+                // Miss-you banner toggle (expand timestamp list)
+                const banner = e.target.closest('.miss-banner');
+                if (banner) {
+                    banner.classList.toggle('open');
+                    return;
+                }
+                // Recall-card click → scroll to that moment
+                const recallCard = e.target.closest('.recall-card');
+                if (recallCard) {
+                    const recallId = recallCard.getAttribute('data-recall-id');
+                    const targetCard = momentsFeed.querySelector(`.moment-card[data-id="${CSS.escape(recallId)}"]`);
+                    if (targetCard) {
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetCard.style.transition = 'box-shadow 0.4s ease';
+                        targetCard.style.boxShadow = '0 0 24px rgba(255, 130, 170, 0.6)';
+                        setTimeout(() => { targetCard.style.boxShadow = ''; }, 1800);
+                    }
+                    return;
+                }
                 const btn = e.target.closest('button[data-act]');
                 if (!btn) return;
                 const id = btn.getAttribute('data-id');
@@ -2061,7 +2593,8 @@
 
                 // ----- Theme color lerp -----
                 const targetIdx = Math.max(0, Math.min(CONFIG.themes.length - 1, state.currentStep + 1));
-                const target = CONFIG.themes[targetIdx];
+                // Festival theme (if active today) overrides the default theme palette
+                const target = festivalOverride || CONFIG.themes[targetIdx];
                 state.themeBlend.hueCenter = lerpHue(state.themeBlend.hueCenter, target.hueCenter, dt * 1.5);
                 state.themeBlend.hueEdge = lerpHue(state.themeBlend.hueEdge, target.hueEdge, dt * 1.5);
                 if (Math.abs(state.themeBlend.hueCenter - lastBakedHueCenter) > 1.5 || sprites.length === 0) {
