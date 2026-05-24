@@ -1,0 +1,19 @@
+{
+    "name": "Pour Melody",
+    "short_name": "Melody ❤",
+    "description": "Eddy 给 Melody 的心 — 跨越大陆的小宇宙。",
+    "start_url": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1a0e26",
+    "theme_color": "#ff6f9a",
+    "lang": "zh-CN",
+    "icons": [
+        {
+            "src": "./icon.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "purpose": "any maskable"
+        }
+    ]
+}

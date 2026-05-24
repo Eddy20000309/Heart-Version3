@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <defs>
+        <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+            <stop offset="0%" stop-color="#3d1a4f"/>
+            <stop offset="60%" stop-color="#1a0e26"/>
+            <stop offset="100%" stop-color="#0a0410"/>
+        </radialGradient>
+        <radialGradient id="heart" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#ffd0e0"/>
+            <stop offset="50%" stop-color="#ff7aa5"/>
+            <stop offset="100%" stop-color="#c14fa9"/>
+        </radialGradient>
+    </defs>
+    <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+    <path fill="url(#heart)" stroke="#ffe6f0" stroke-width="6"
+          d="M256 432
+             C 168 360, 96 290, 96 212
+             C 96 158, 138 116, 192 116
+             C 224 116, 246 132, 256 152
+             C 266 132, 288 116, 320 116
+             C 374 116, 416 158, 416 212
+             C 416 290, 344 360, 256 432 Z"/>
+</svg>

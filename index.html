@@ -5,6 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>Pour Melody · v3</title>
+    <!-- PWA: lets Melody/Eddy add the page to home screen (required for iOS push) -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="apple-touch-icon" href="./icon.svg">
+    <meta name="theme-color" content="#ff6f9a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Melody ❤">
     <link href="https://fonts.googleapis.com/css2?family=Long+Cang&display=swap" rel="stylesheet">
     <!-- Firebase SDK (compat mode for non-bundled use) -->
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
@@ -657,6 +665,290 @@
             letter-spacing: 2px;
         }
         .review-close:hover { filter: brightness(1.1); }
+
+        /* ===== Moments-page mute button (header) ===== */
+        .moments-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .moments-mute {
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+            outline: none;
+        }
+        .moments-mute:hover { background: rgba(255, 255, 255, 0.22); transform: scale(1.08); }
+        .moments-mute:active { transform: scale(0.92); }
+
+        /* ===== Songs / 歌单 pane ===== */
+        .song-add-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .song-add-row input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s ease;
+            min-width: 0;
+        }
+        .song-add-row input:focus { border-color: rgba(255, 150, 180, 0.6); background: rgba(255, 255, 255, 0.12); }
+        .song-add-row input::placeholder { color: rgba(255, 255, 255, 0.35); }
+        .song-add-row button {
+            background: linear-gradient(135deg, #ff7aa5, #c14fa9);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            padding: 0 18px;
+            font-family: "Long Cang", cursive;
+            font-size: 16px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 14px rgba(255, 100, 160, 0.3);
+            transition: filter 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+        .song-add-row button:hover { filter: brightness(1.1); }
+        .song-add-row button:active { transform: scale(0.97); }
+        .song-add-row button:disabled { opacity: 0.55; cursor: wait; }
+        .song-hint {
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 12px;
+            padding: 0 4px 14px;
+            letter-spacing: 1px;
+            line-height: 1.7;
+        }
+        .song-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 6px;
+            border-radius: 12px;
+            background: linear-gradient(160deg, rgba(255, 180, 210, 0.06), rgba(180, 130, 200, 0.04));
+            border: 1px solid rgba(255, 180, 210, 0.10);
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .song-item.playing {
+            background: linear-gradient(160deg, rgba(255, 130, 170, 0.20), rgba(190, 100, 200, 0.16));
+            border-color: rgba(255, 180, 210, 0.4);
+        }
+        .song-play {
+            flex: 0 0 36px;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #ff7aa5, #c14fa9);
+            color: #fff;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 100, 160, 0.3);
+        }
+        .song-play:hover { transform: scale(1.08); }
+        .song-play:active { transform: scale(0.94); }
+        .song-body { flex: 1; min-width: 0; }
+        .song-title {
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .song-meta {
+            display: flex; align-items: center; gap: 6px;
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: "Long Cang", cursive;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .song-meta-avatar {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .song-meta-avatar svg { width: 100%; height: 100%; display: block; }
+        .song-delete {
+            flex: 0 0 26px;
+            width: 26px; height: 26px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 120, 140, 0.35);
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .song-delete:hover { color: #ff6f8a; background: rgba(255, 100, 130, 0.12); }
+        .song-empty {
+            text-align: center;
+            padding: 40px 20px;
+            font-family: "Long Cang", cursive;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== Mini player (floating bottom-right) ===== */
+        .mini-player {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 70;
+            width: 320px;
+            background: linear-gradient(160deg, rgba(40, 16, 50, 0.96), rgba(20, 10, 30, 0.96));
+            border: 1px solid rgba(255, 180, 210, 0.28);
+            border-radius: 16px;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            transform: translateY(140%);
+            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+            pointer-events: none;
+        }
+        .mini-player.open {
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .mini-player-iframe {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            background: #000;
+            border: none;
+            display: block;
+        }
+        .mini-player-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 12px;
+        }
+        .mini-player-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .mini-player-title {
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            font-size: 15px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mini-player-sub {
+            color: rgba(255, 255, 255, 0.5);
+            font-family: "Long Cang", cursive;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mini-player-btn {
+            flex: 0 0 32px;
+            width: 32px; height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+        .mini-player-btn:hover { background: rgba(255, 255, 255, 0.18); }
+        .mini-player-btn:active { transform: scale(0.92); }
+        .mini-player-btn:disabled { opacity: 0.3; cursor: default; }
+        .mini-player-close { color: rgba(255, 150, 170, 0.85); }
+
+        @media (max-width: 768px) {
+            .mini-player {
+                width: calc(100% - 24px);
+                right: 12px;
+                bottom: 12px;
+            }
+        }
+
+        /* ===== iOS PWA install hint ===== */
+        .ios-hint {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            z-index: 200;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+        }
+        .ios-hint.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .ios-hint-card {
+            max-width: 360px;
+            width: 100%;
+            background: linear-gradient(160deg, rgba(40, 16, 50, 0.97), rgba(20, 10, 30, 0.97));
+            border: 1px solid rgba(255, 180, 210, 0.32);
+            border-radius: 16px;
+            padding: 16px 18px;
+            color: #fff;
+            font-family: "Long Cang", cursive;
+            box-shadow: 0 14px 50px rgba(0, 0, 0, 0.6);
+        }
+        .ios-hint-title {
+            color: #ffc4d8;
+            font-size: 17px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .ios-hint-body {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 14px;
+            letter-spacing: 1px;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+        .ios-hint-close {
+            display: block;
+            margin-left: auto;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #ff7aa5, #c14fa9);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            font-family: "Long Cang", cursive;
+            font-size: 14px;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+        .ios-hint-close:hover { filter: brightness(1.1); }
+
         .moments-sidebar, .moments-sidebar-right {
             position: sticky;
             top: 80px;       /* sit below the sticky header */
@@ -1524,9 +1816,12 @@
                     <span class="viewer-name" id="viewer-name">Eddy</span>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
                 </button>
-                <button class="moments-close" aria-label="关闭">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-                </button>
+                <div class="moments-header-actions">
+                    <button class="moments-mute" id="moments-mute" aria-label="切换背景音乐" title="切换背景音乐"></button>
+                    <button class="moments-close" aria-label="关闭">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                    </button>
+                </div>
             </div>
             <div class="moments-cover">
                 <div class="moments-cover-title">Pour Eddy &amp; Melody</div>
@@ -1539,9 +1834,11 @@
                     <div class="feed-tabs" id="feed-tabs">
                         <button type="button" class="feed-tab active" data-tab="moments">朋友圈</button>
                         <button type="button" class="feed-tab" data-tab="wishes">心愿单</button>
+                        <button type="button" class="feed-tab" data-tab="songs">歌单</button>
                     </div>
                     <div id="feed-pane-moments" class="feed-pane"></div>
                     <div id="feed-pane-wishes" class="feed-pane hidden"></div>
+                    <div id="feed-pane-songs" class="feed-pane hidden"></div>
                 </div>
                 <aside class="moments-sidebar-right" id="moments-sidebar-right">
                     <!-- RIGHT column: reserved for future panels (e.g. 心情温度 in Batch 2) -->
@@ -1554,6 +1851,31 @@
                 </aside>
             </div>
             <button id="publish-btn" aria-label="发表新动态">+</button>
+        </div>
+
+        <!-- Floating Bilibili mini player (sibling of #moments so it survives overlay close) -->
+        <div id="mini-player" class="mini-player" aria-hidden="true">
+            <iframe id="mini-player-iframe" class="mini-player-iframe"
+                    title="Bilibili 播放器"
+                    allow="autoplay; encrypted-media; fullscreen"
+                    scrolling="no"
+                    frameborder="0"
+                    allowfullscreen></iframe>
+            <div class="mini-player-bar">
+                <div class="mini-player-info">
+                    <div class="mini-player-title" id="mini-player-title">—</div>
+                    <div class="mini-player-sub" id="mini-player-sub"></div>
+                </div>
+                <button class="mini-player-btn" id="mini-player-prev" aria-label="上一首" title="上一首">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM9.5 12l8.5-6v12z"/></svg>
+                </button>
+                <button class="mini-player-btn" id="mini-player-next" aria-label="下一首" title="下一首">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg>
+                </button>
+                <button class="mini-player-btn mini-player-close" id="mini-player-close" aria-label="关闭播放器" title="关闭播放器">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </button>
+            </div>
         </div>
 
         <!-- Monthly / yearly review modal -->
@@ -2039,6 +2361,81 @@
                 }
             };
             wishesBackend.init();
+
+            // ===== Songs / 歌单 (Bilibili links shared between Eddy & Melody) =====
+            // Stores BV id + title + who-added. Both Eddy and Melody can add/remove.
+            const songsBackend = {
+                cached: [],
+                subscribers: [],
+                ready: false,
+                init() {
+                    if (!fbDb) return;
+                    fbAuth.onAuthStateChanged((user) => {
+                        if (!user) return;
+                        fbDb.collection('songs')
+                            .orderBy('addedAt', 'desc')
+                            .onSnapshot((snap) => {
+                                this.cached = snap.docs.map(d => {
+                                    const data = d.data();
+                                    return {
+                                        id: d.id,
+                                        bvid: data.bvid || '',
+                                        title: data.title || '',
+                                        note: data.note || '',
+                                        addedBy: data.addedBy || '',
+                                        addedAt: (data.addedAt && data.addedAt.toMillis) ? data.addedAt.toMillis() : Date.now()
+                                    };
+                                });
+                                this.ready = true;
+                                this.subscribers.forEach(cb => { try { cb(this.cached); } catch (e) { console.error(e); } });
+                            }, err => console.warn('[songs] listen failed', err));
+                    });
+                },
+                subscribe(cb) {
+                    this.subscribers.push(cb);
+                    if (this.ready) cb(this.cached);
+                },
+                async add({ bvid, title, who, note }) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('songs').add({
+                        bvid,
+                        title: title || bvid,
+                        note: note || '',
+                        addedBy: who,
+                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                },
+                async remove(id) {
+                    if (!fbDb) throw new Error('Firebase 未连接');
+                    await fbDb.collection('songs').doc(id).delete();
+                }
+            };
+            songsBackend.init();
+
+            // Pull a BVid out of a pasted Bilibili URL (any form) or raw BVxxx string.
+            // Supports: https://www.bilibili.com/video/BVxxxxxxxxxx/, b23.tv share links
+            // are NOT auto-resolved (CORS); user must paste a long link from "复制链接".
+            function extractBvid(input) {
+                if (!input) return null;
+                const s = String(input).trim();
+                const m = s.match(/BV[a-zA-Z0-9]{8,12}/);
+                return m ? m[0] : null;
+            }
+
+            // Best-effort fetch of the video title via Bilibili's web API.
+            // CORS-restricted on www.bilibili.com but the api.* subdomain sometimes
+            // allows simple GETs; if it fails we just fall back to the BV id as title.
+            async function fetchBilibiliTitle(bvid) {
+                try {
+                    const url = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
+                    const res = await fetch(url, { mode: 'cors' });
+                    if (!res.ok) return null;
+                    const json = await res.json();
+                    return (json && json.data && json.data.title) ? json.data.title : null;
+                } catch (e) {
+                    return null;  // CORS or network — caller decides fallback
+                }
+            }
 
             // ===== Festival theme registry & date detection =====
             // Each festival declares particle palette overrides and a banner message.
@@ -2543,14 +2940,33 @@
                 '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>';
             const ICON_SOUND_OFF =
                 '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
-            function updateMuteIcon() { muteBtn.innerHTML = isMuted ? ICON_SOUND_OFF : ICON_SOUND_ON; }
-            muteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                isMuted = !isMuted;
+            // Smaller icons for the inside-moments mute button
+            const ICON_SOUND_ON_SM =
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>';
+            const ICON_SOUND_OFF_SM =
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
+            const momentsMuteBtn = document.getElementById('moments-mute');
+            function updateMuteIcon() {
+                muteBtn.innerHTML = isMuted ? ICON_SOUND_OFF : ICON_SOUND_ON;
+                if (momentsMuteBtn) momentsMuteBtn.innerHTML = isMuted ? ICON_SOUND_OFF_SM : ICON_SOUND_ON_SM;
+            }
+            // Exposed so other modules (mini player auto-mute) can toggle and stay in sync
+            function setMuted(val) {
+                isMuted = !!val;
                 audio.muted = isMuted;
                 localStorage.setItem('pourMelodyMuted', isMuted ? '1' : '0');
                 updateMuteIcon();
+            }
+            muteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setMuted(!isMuted);
             });
+            if (momentsMuteBtn) {
+                momentsMuteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setMuted(!isMuted);
+                });
+            }
             updateMuteIcon();
 
             // (The previous standalone miss-btn was removed — clicking the big heart in the
@@ -3161,11 +3577,127 @@
                 pane.innerHTML = body;
             }
 
+            // ===== Songs render + Bilibili mini player =====
+            // miniPlayer holds the currently-loaded queue + index. The queue is just
+            // a snapshot of the songs list at "play" time; subsequent inserts/deletes
+            // by either user don't disrupt what's currently playing.
+            const miniPlayer = {
+                el: null, iframe: null, titleEl: null, subEl: null,
+                prevBtn: null, nextBtn: null, closeBtn: null,
+                queue: [],         // array of {id, bvid, title, addedBy}
+                index: -1,         // current position
+                get currentSongId() { return this.index >= 0 && this.queue[this.index] ? this.queue[this.index].id : null; },
+                init() {
+                    this.el       = document.getElementById('mini-player');
+                    this.iframe   = document.getElementById('mini-player-iframe');
+                    this.titleEl  = document.getElementById('mini-player-title');
+                    this.subEl    = document.getElementById('mini-player-sub');
+                    this.prevBtn  = document.getElementById('mini-player-prev');
+                    this.nextBtn  = document.getElementById('mini-player-next');
+                    this.closeBtn = document.getElementById('mini-player-close');
+                    this.prevBtn.addEventListener('click', () => this.prev());
+                    this.nextBtn.addEventListener('click', () => this.next());
+                    this.closeBtn.addEventListener('click', () => this.close());
+                },
+                play(songsList, startId) {
+                    // Build queue starting at the chosen song; if no startId, start from top
+                    this.queue = songsList.slice();
+                    const i = startId ? this.queue.findIndex(s => s.id === startId) : 0;
+                    this.index = i >= 0 ? i : 0;
+                    this._load();
+                    this._open();
+                    // Auto-mute the background piano so the song isn't fighting it
+                    if (typeof setMuted === 'function' && !isMuted) setMuted(true);
+                },
+                _load() {
+                    const cur = this.queue[this.index];
+                    if (!cur) return this.close();
+                    // Bilibili embed URL — autoplay=1 starts immediately, danmaku=0 hides comments,
+                    // high_quality=1 picks better stream when available.
+                    const src = `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(cur.bvid)}&autoplay=1&danmaku=0&high_quality=1`;
+                    this.iframe.src = src;
+                    this.titleEl.textContent = cur.title || cur.bvid;
+                    this.subEl.textContent = `${cur.addedBy || '?'} 加入 · ${this.index + 1}/${this.queue.length}`;
+                    this.prevBtn.disabled = this.index <= 0;
+                    this.nextBtn.disabled = this.index >= this.queue.length - 1;
+                    // Re-render songs pane to highlight the playing one
+                    if (activeFeedTab === 'songs') renderSongs();
+                },
+                prev() {
+                    if (this.index > 0) { this.index--; this._load(); }
+                },
+                next() {
+                    if (this.index < this.queue.length - 1) { this.index++; this._load(); }
+                },
+                _open() {
+                    this.el.classList.add('open');
+                    this.el.setAttribute('aria-hidden', 'false');
+                },
+                close() {
+                    this.el.classList.remove('open');
+                    this.el.setAttribute('aria-hidden', 'true');
+                    // Clear iframe src so audio actually stops
+                    this.iframe.src = 'about:blank';
+                    this.index = -1;
+                    this.queue = [];
+                    if (activeFeedTab === 'songs') renderSongs();
+                }
+            };
+
+            function renderSongs() {
+                const pane = document.getElementById('feed-pane-songs');
+                if (!pane) return;
+                const songs = songsBackend.cached.slice();
+
+                let html = `
+                    <div class="song-add-row">
+                        <input id="song-input" type="text" placeholder="粘贴 Bilibili 链接或 BV 号…" autocomplete="off">
+                        <button type="button" id="song-add-btn">加入 ♪</button>
+                    </div>
+                    <div class="song-hint">
+                        从 Bilibili 视频页复制完整链接（手机：分享 → 复制链接；电脑：浏览器地址栏），粘贴进来就行。
+                    </div>
+                `;
+
+                if (!songsBackend.ready) {
+                    html += '<div class="song-empty">读取中…</div>';
+                } else if (songs.length === 0) {
+                    html += '<div class="song-empty">还没有歌呢…<br/>放一首属于你们的吧 ♪</div>';
+                } else {
+                    for (const s of songs) {
+                        const av = s.addedBy === 'Melody' ? WISH_TINY_MELODY : WISH_TINY_EDDY;
+                        const playingCls = miniPlayer.currentSongId === s.id ? ' playing' : '';
+                        const playIcon = miniPlayer.currentSongId === s.id
+                            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>'
+                            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                        html += `
+                            <div class="song-item${playingCls}" data-id="${escapeHtml(s.id)}">
+                                <button class="song-play" data-act="song-play" data-id="${escapeHtml(s.id)}" aria-label="播放">
+                                    ${playIcon}
+                                </button>
+                                <div class="song-body">
+                                    <div class="song-title">${escapeHtml(s.title || s.bvid)}</div>
+                                    <div class="song-meta">
+                                        <span class="song-meta-avatar">${av}</span>
+                                        <span>${escapeHtml(s.addedBy || '?')} 加入</span>
+                                    </div>
+                                </div>
+                                <button class="song-delete" data-act="song-delete" data-id="${escapeHtml(s.id)}" aria-label="删除">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                                </button>
+                            </div>`;
+                    }
+                }
+
+                pane.innerHTML = html;
+            }
+
             // Tab switching
             let activeFeedTab = 'moments';
             const feedTabs = document.getElementById('feed-tabs');
             const feedPaneMoments = document.getElementById('feed-pane-moments');
             const feedPaneWishes = document.getElementById('feed-pane-wishes');
+            const feedPaneSongs = document.getElementById('feed-pane-songs');
             feedTabs.addEventListener('click', (e) => {
                 const btn = e.target.closest('.feed-tab');
                 if (!btn) return;
@@ -3175,16 +3707,22 @@
                 feedTabs.querySelectorAll('.feed-tab').forEach(b => b.classList.toggle('active', b === btn));
                 feedPaneMoments.classList.toggle('hidden', tab !== 'moments');
                 feedPaneWishes.classList.toggle('hidden', tab !== 'wishes');
+                feedPaneSongs.classList.toggle('hidden', tab !== 'songs');
                 // The floating "+" publish button only makes sense for moments;
-                // wishes have their own inline input row.
+                // wishes and songs have their own inline input rows.
                 const pbtn = document.getElementById('publish-btn');
                 if (pbtn) pbtn.style.display = tab === 'moments' ? '' : 'none';
                 if (tab === 'wishes') renderWishes();
+                if (tab === 'songs') renderSongs();
             });
 
             // Re-render wishes live when Firestore changes (only if active)
             wishesBackend.subscribe(() => {
                 if (momentsOverlay.classList.contains('open') && activeFeedTab === 'wishes') renderWishes();
+            });
+            // Re-render songs live when Firestore changes (only if active)
+            songsBackend.subscribe(() => {
+                if (momentsOverlay.classList.contains('open') && activeFeedTab === 'songs') renderSongs();
             });
 
             // Wishlist interactions — delegated on the wishes pane
@@ -3236,6 +3774,78 @@
                     if (addBtn) addBtn.click();
                 }
             });
+
+            // Songs pane interactions — delegated
+            feedPaneSongs.addEventListener('click', async (e) => {
+                // Add song button
+                if (e.target.closest('#song-add-btn')) {
+                    const input = document.getElementById('song-input');
+                    const raw = (input.value || '').trim();
+                    if (!raw) return;
+                    const bvid = extractBvid(raw);
+                    if (!bvid) {
+                        alert('看不出 BV 号 — 请粘贴包含 BV... 的 Bilibili 链接');
+                        return;
+                    }
+                    // Avoid duplicates
+                    if (songsBackend.cached.some(s => s.bvid === bvid)) {
+                        alert('这首歌已经在歌单里啦 ♪');
+                        return;
+                    }
+                    const addBtn = document.getElementById('song-add-btn');
+                    addBtn.disabled = true;
+                    addBtn.textContent = '加入中…';
+                    try {
+                        // Best-effort fetch title; fall back to the BV id
+                        const fetchedTitle = await fetchBilibiliTitle(bvid);
+                        const title = fetchedTitle || bvid;
+                        await songsBackend.add({ bvid, title, who: currentViewer });
+                        input.value = '';
+                        input.focus();
+                    } catch (err) {
+                        console.warn('add song failed', err);
+                        alert('添加失败：' + err.message);
+                    } finally {
+                        addBtn.disabled = false;
+                        addBtn.textContent = '加入 ♪';
+                    }
+                    return;
+                }
+                // Play button — start playback from this song
+                const playBtn = e.target.closest('button[data-act="song-play"]');
+                if (playBtn) {
+                    const id = playBtn.getAttribute('data-id');
+                    // If this same song is already playing, treat as close
+                    if (miniPlayer.currentSongId === id) {
+                        miniPlayer.close();
+                    } else {
+                        miniPlayer.play(songsBackend.cached, id);
+                    }
+                    return;
+                }
+                // Delete button
+                const delBtn = e.target.closest('button[data-act="song-delete"]');
+                if (delBtn) {
+                    if (!confirm('确定要从歌单移除这首歌吗？')) return;
+                    const id = delBtn.getAttribute('data-id');
+                    // If we're removing what's playing, close player first
+                    if (miniPlayer.currentSongId === id) miniPlayer.close();
+                    delBtn.disabled = true;
+                    try { await songsBackend.remove(id); }
+                    catch (err) { console.warn('remove song failed', err); alert('删除失败：' + err.message); delBtn.disabled = false; }
+                }
+            });
+            // Enter key in song input adds
+            feedPaneSongs.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target && e.target.id === 'song-input') {
+                    e.preventDefault();
+                    const addBtn = document.getElementById('song-add-btn');
+                    if (addBtn) addBtn.click();
+                }
+            });
+
+            // Wire up the mini player UI
+            miniPlayer.init();
 
             // Like / comment / open-comments handlers (delegated, async with Firebase)
             momentsFeed.addEventListener('click', async (e) => {
@@ -3810,6 +4420,146 @@
 
                 requestAnimationFrame(loop);
             }
+
+            // ===== PWA install + cross-device push notifications =====
+            //
+            // Strategy (zero-server / zero-FCM):
+            //   - Register service worker so the app is installable and stays alive in the
+            //     background on mobile when added to home screen.
+            //   - When pingsBackend pushes new pings, if any are from the OTHER person and
+            //     newer than the last seen ping at page load, fire a local Notification.
+            //   - The notification UI works in foreground (Notification.show) and background
+            //     (service worker registration.showNotification, surviving page minimize).
+            //   - iOS: requires the page to have been installed to home screen (manifest)
+            //     AND iOS 16.4+. We show a one-time hint to Eddy/Melody if they're on iOS.
+            const pwa = {
+                swRegistration: null,
+                lastSeenPingTs: 0,   // initialized after first pingsBackend snapshot
+                bootstrapped: false, // suppress notifications on the very first snapshot
+
+                async init() {
+                    // Register service worker (best-effort — fail silent on older browsers)
+                    if ('serviceWorker' in navigator) {
+                        try {
+                            this.swRegistration = await navigator.serviceWorker.register('./service-worker.js');
+                            console.log('[pwa] service worker registered');
+                        } catch (e) {
+                            console.warn('[pwa] service worker registration failed:', e);
+                        }
+                    }
+                    // Subscribe to ping events for cross-device notifications
+                    pingsBackend.subscribe((pings) => this.onPingsChanged(pings));
+
+                    // iOS PWA hint — show once if (a) iOS, (b) Safari (not yet in PWA), (c) not previously dismissed
+                    this.maybeShowIosHint();
+                },
+
+                onPingsChanged(pings) {
+                    if (!pings || pings.length === 0) return;
+                    const newestTs = pings[0].ts;
+                    if (!this.bootstrapped) {
+                        // On first load, remember the current newest ping so we don't notify
+                        // for everything that happened while the user was away — they'll see
+                        // those in the banner already.
+                        this.lastSeenPingTs = newestTs;
+                        this.bootstrapped = true;
+                        return;
+                    }
+                    // Find pings that are (a) newer than what we've seen, (b) from the OTHER person
+                    const otherPerson = currentViewer === 'Eddy' ? 'Melody' : 'Eddy';
+                    const fresh = pings.filter(p => p.ts > this.lastSeenPingTs && p.from === otherPerson);
+                    if (fresh.length > 0) {
+                        this.notify(otherPerson, fresh.length);
+                    }
+                    this.lastSeenPingTs = Math.max(this.lastSeenPingTs, newestTs);
+                },
+
+                async ensurePermission() {
+                    if (!('Notification' in window)) return false;
+                    if (Notification.permission === 'granted') return true;
+                    if (Notification.permission === 'denied') return false;
+                    try {
+                        const result = await Notification.requestPermission();
+                        return result === 'granted';
+                    } catch (e) {
+                        return false;
+                    }
+                },
+
+                async notify(fromWho, count) {
+                    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+                    const title = `${fromWho} 想你了 ❤`;
+                    const body = count > 1 ? `刚刚收到 ${count} 次想念 · 快看看 ♪` : '此刻，正在想你 ♪';
+                    const options = {
+                        body,
+                        icon: './icon.svg',
+                        badge: './icon.svg',
+                        tag: 'pour-melody-miss',  // collapse multiple notifications
+                        renotify: true,
+                        vibrate: [120, 60, 120],
+                        data: { url: location.href }
+                    };
+                    try {
+                        // Prefer service-worker registration (works while tab is in background)
+                        if (this.swRegistration && this.swRegistration.showNotification) {
+                            await this.swRegistration.showNotification(title, options);
+                        } else {
+                            new Notification(title, options);
+                        }
+                    } catch (e) {
+                        console.warn('[pwa] notify failed:', e);
+                    }
+                },
+
+                maybeShowIosHint() {
+                    const ua = navigator.userAgent || '';
+                    const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                                      || window.navigator.standalone === true;
+                    if (!isIos || isStandalone) return;
+                    if (localStorage.getItem('pourMelodyIosHintShown') === '1') return;
+                    // Show a soft hint after a short delay
+                    setTimeout(() => {
+                        const hint = document.createElement('div');
+                        hint.className = 'ios-hint';
+                        hint.innerHTML = `
+                            <div class="ios-hint-card">
+                                <div class="ios-hint-title">想收到对方想念你的通知吗？</div>
+                                <div class="ios-hint-body">
+                                    在 Safari 里点底部 <b>分享按钮 ⬆</b>，选择「添加到主屏幕」，<br/>
+                                    然后从主屏图标打开就可以收到推送啦 ♪
+                                </div>
+                                <button class="ios-hint-close" type="button">知道了</button>
+                            </div>`;
+                        document.body.appendChild(hint);
+                        requestAnimationFrame(() => hint.classList.add('show'));
+                        hint.querySelector('.ios-hint-close').addEventListener('click', () => {
+                            hint.classList.remove('show');
+                            setTimeout(() => hint.remove(), 300);
+                            localStorage.setItem('pourMelodyIosHintShown', '1');
+                        });
+                    }, 4000);
+                }
+            };
+            pwa.init();
+
+            // Request notification permission the first time the user taps the heart
+            // (a real gesture is required for the prompt to appear on most browsers).
+            // We piggy-back on the existing miss-ping flow.
+            (function wireNotificationPermissionAsk() {
+                if (!('Notification' in window)) return;
+                if (Notification.permission !== 'default') return;  // already granted or denied
+                let asked = false;
+                const ask = async () => {
+                    if (asked) return;
+                    asked = true;
+                    // Slight delay so the first ping toast finishes first
+                    setTimeout(() => pwa.ensurePermission(), 800);
+                };
+                // First tap (mouse or touch) anywhere triggers it
+                stage.addEventListener('click', ask, { once: true });
+                stage.addEventListener('touchstart', ask, { once: true });
+            })();
 
             // ===== Boot =====
             resize();
