@@ -215,6 +215,43 @@
         }
         #festival-banner.show { opacity: 1; }
 
+        /* ===== Cloud-connecting banner (Firebase slow / unstable network) ===== */
+        #cloud-banner {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 24;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(20, 14, 30, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 200, 230, 0.25);
+            color: rgba(255, 220, 235, 0.92);
+            font-family: "Long Cang", cursive;
+            font-size: 14px;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            white-space: nowrap;
+        }
+        #cloud-banner.show { opacity: 1; }
+        #cloud-banner .dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            background: #ff9fc0;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: cloud-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes cloud-pulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.85); }
+            50%      { opacity: 1;   transform: scale(1.15); }
+        }
+
         /* ===== Moments entry (top-left) ===== */
         #moments-entry {
             position: absolute;
@@ -2055,6 +2092,7 @@
         <!-- Heart tap registers a "miss-you" ping; toast shows brief confirmation -->
         <div class="miss-toast" id="miss-toast">想你了，已送达 ❤</div>
         <div id="festival-banner"></div>
+        <div id="cloud-banner" aria-live="polite"><span class="dot"></span><span id="cloud-banner-text">正在连接云端…</span></div>
         <button id="moments-entry" aria-label="打开我们的瞬间">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 21s-7-4.35-9.5-9.05C.93 9.16 2.4 5 6.2 5c2.1 0 3.5 1.2 4.3 2.4l1.5 2.05 1.5-2.05C14.3 6.2 15.7 5 17.8 5c3.8 0 5.27 4.16 3.7 6.95C19 16.65 12 21 12 21z"
@@ -2471,6 +2509,44 @@
                 }
             };
             momentsBackend.init();
+
+            // ===== Cloud-connecting banner =====
+            // Friendly status notice when Firebase takes a while to connect (slow VPN /
+            // unstable China-mainland network etc.). Auto-shows after 8s if moments data
+            // hasn't arrived; auto-hides once any backend reports ready. After 25s without
+            // connection, the message escalates.
+            (function watchCloudConnection() {
+                const banner = document.getElementById('cloud-banner');
+                const text = document.getElementById('cloud-banner-text');
+                if (!banner || !text) return;
+                let hidden = false;
+                const hide = () => {
+                    if (hidden) return;
+                    hidden = true;
+                    banner.classList.remove('show');
+                };
+                // Any backend going ready = network is OK
+                const anyReady = () =>
+                    momentsBackend.ready || pingsBackend.ready || moodsBackend.ready
+                    || wishesBackend.ready || songsBackend.ready || strokesBackend.ready;
+                // First check at 8s: still nothing? Show "connecting…"
+                setTimeout(() => {
+                    if (hidden || anyReady()) return;
+                    text.textContent = '正在连接云端，请稍候…';
+                    banner.classList.add('show');
+                }, 8000);
+                // Escalate at 25s: still nothing? Tell user network looks slow
+                setTimeout(() => {
+                    if (hidden || anyReady()) return;
+                    text.textContent = '网络似乎慢，正在重试…';
+                }, 25000);
+                // Poll once a second to auto-hide as soon as a backend lands
+                const poll = setInterval(() => {
+                    if (anyReady()) { hide(); clearInterval(poll); }
+                }, 1000);
+                // Hard stop after 5 min so we don't poll forever
+                setTimeout(() => clearInterval(poll), 5 * 60 * 1000);
+            })();
 
             // ===== Pings backend (miss-you button) =====
             // Each ping is a tiny doc: { from: 'Eddy'|'Melody', ts: serverTimestamp() }
@@ -5389,8 +5465,9 @@
                     // Subscribe to ping events for cross-device notifications
                     pingsBackend.subscribe((pings) => this.onPingsChanged(pings));
 
-                    // iOS PWA hint — show once if (a) iOS, (b) Safari (not yet in PWA), (c) not previously dismissed
+                    // Platform-specific PWA install hints — shown once each
                     this.maybeShowIosHint();
+                    this.maybeShowAndroidHint();
                 },
 
                 onPingsChanged(pings) {
@@ -5450,24 +5527,15 @@
                     }
                 },
 
-                maybeShowIosHint() {
-                    const ua = navigator.userAgent || '';
-                    const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-                                      || window.navigator.standalone === true;
-                    if (!isIos || isStandalone) return;
-                    if (localStorage.getItem('pourMelodyIosHintShown') === '1') return;
-                    // Show a soft hint after a short delay
+                _showInstallHint(title, bodyHtml, storageKey, delayMs) {
+                    if (localStorage.getItem(storageKey) === '1') return;
                     setTimeout(() => {
                         const hint = document.createElement('div');
                         hint.className = 'ios-hint';
                         hint.innerHTML = `
                             <div class="ios-hint-card">
-                                <div class="ios-hint-title">想收到对方想念你的通知吗？</div>
-                                <div class="ios-hint-body">
-                                    在 Safari 里点底部 <b>分享按钮 ⬆</b>，选择「添加到主屏幕」，<br/>
-                                    然后从主屏图标打开就可以收到推送啦 ♪
-                                </div>
+                                <div class="ios-hint-title">${title}</div>
+                                <div class="ios-hint-body">${bodyHtml}</div>
                                 <button class="ios-hint-close" type="button">知道了</button>
                             </div>`;
                         document.body.appendChild(hint);
@@ -5475,9 +5543,37 @@
                         hint.querySelector('.ios-hint-close').addEventListener('click', () => {
                             hint.classList.remove('show');
                             setTimeout(() => hint.remove(), 300);
-                            localStorage.setItem('pourMelodyIosHintShown', '1');
+                            localStorage.setItem(storageKey, '1');
                         });
-                    }, 4000);
+                    }, delayMs);
+                },
+
+                maybeShowIosHint() {
+                    const ua = navigator.userAgent || '';
+                    const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                                      || window.navigator.standalone === true;
+                    if (!isIos || isStandalone) return;
+                    this._showInstallHint(
+                        '想收到对方想念你的通知吗？',
+                        '在 Safari 里点底部 <b>分享按钮 ⬆</b>，选择「添加到主屏幕」，<br/>然后从主屏图标打开就可以收到推送啦 ♪',
+                        'pourMelodyIosHintShown',
+                        4000
+                    );
+                },
+
+                maybeShowAndroidHint() {
+                    const ua = navigator.userAgent || '';
+                    const isAndroid = /Android/.test(ua);
+                    // Already running as installed PWA?
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+                    if (!isAndroid || isStandalone) return;
+                    this._showInstallHint(
+                        '想后台收到「想念」推送吗？',
+                        '点右上角 <b>菜单 ⋮ → 添加到主屏幕</b>，下次<br/>从主屏图标启动就更顺，推送也更稳定 ♪',
+                        'pourMelodyAndroidHintShown',
+                        4000
+                    );
                 }
             };
             pwa.init();
