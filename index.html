@@ -4268,13 +4268,23 @@
             // Renders a canvas + tool bar. New strokes are added locally as they happen,
             // then persisted to Firestore on stroke-end. Remote strokes appear via the
             // strokesBackend subscription and we redraw the whole canvas.
+            //
+            // IMPORTANT: renderDraw is called every time the user switches to the 画板 tab,
+            // which is more than once if they tab around. We therefore:
+            //   1) Render the HTML only on first call (`wired` flag)
+            //   2) Attach event listeners only on first call
+            //   3) On subsequent calls just redrawAll() + resize the canvas backing store
+            // This kills the original bug where each renderDraw added another set of
+            // window/pane listeners, which (on Safari + mobile) caused click events on
+            // toolbar buttons to be swallowed after a draw.
             const drawState = {
                 canvas: null, ctx: null,
                 color: '#ff6f9a',
                 width: 4,
                 drawing: false,
-                currentStroke: null,  // { points: [], color, width }
-                rect: null,
+                currentStroke: null,
+                wired: false,             // <- guard against re-wiring
+                _activePointerId: null,   // pointerdown/up tracking (mouse + touch unified)
             };
             const DRAW_COLORS = ['#ff6f9a', '#ffd166', '#7dd3fc', '#a78bfa', '#ffffff', '#1a0e26'];
             const DRAW_BRUSHES = [{ label: '细', size: 2 }, { label: '中', size: 4 }, { label: '粗', size: 8 }];
@@ -4282,6 +4292,13 @@
             function renderDraw() {
                 const pane = document.getElementById('feed-pane-draw');
                 if (!pane) return;
+                if (drawState.wired) {
+                    // Already rendered — just refresh the canvas. Size may have changed
+                    // if the user switched tabs and the layout differs, so resync.
+                    resizeDrawCanvas();
+                    redrawAll();
+                    return;
+                }
                 pane.innerHTML = `
                     <div class="draw-toolbar">
                         ${DRAW_COLORS.map(c => `<button type="button" class="draw-color${c === drawState.color ? ' active' : ''}" data-color="${c}" style="background:${c}" aria-label="颜色"></button>`).join('')}
@@ -4294,24 +4311,34 @@
                 `;
                 drawState.canvas = document.getElementById('draw-canvas');
                 drawState.ctx = drawState.canvas.getContext('2d');
-                // Backing-store resolution = display size × DPR for crispness
+                resizeDrawCanvas();
+                wireDrawInput();
+                wireDrawToolbar();
+                drawState.wired = true;
+                redrawAll();
+            }
+            function resizeDrawCanvas() {
+                if (!drawState.canvas) return;
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 const cssW = drawState.canvas.offsetWidth;
                 const cssH = drawState.canvas.offsetHeight;
-                drawState.canvas.width  = Math.round(cssW * dpr);
-                drawState.canvas.height = Math.round(cssH * dpr);
-                drawState.ctx.scale(dpr, dpr);
-
-                redrawAll();
-                wireDrawInput();
-                wireDrawToolbar();
+                if (cssW <= 0 || cssH <= 0) return;  // pane is hidden — try again later
+                const targetW = Math.round(cssW * dpr);
+                const targetH = Math.round(cssH * dpr);
+                if (drawState.canvas.width !== targetW || drawState.canvas.height !== targetH) {
+                    drawState.canvas.width  = targetW;
+                    drawState.canvas.height = targetH;
+                    drawState.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    drawState.ctx.scale(dpr, dpr);
+                }
             }
             function redrawAll() {
                 if (!drawState.ctx || !drawState.canvas) return;
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                drawState.ctx.clearRect(0, 0, drawState.canvas.width / dpr, drawState.canvas.height / dpr);
                 const w = drawState.canvas.offsetWidth;
                 const h = drawState.canvas.offsetHeight;
+                if (w <= 0 || h <= 0) return;
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                drawState.ctx.clearRect(0, 0, drawState.canvas.width / dpr, drawState.canvas.height / dpr);
                 for (const s of (strokesBackend.cached || [])) {
                     drawStroke(s, w, h);
                 }
@@ -4325,17 +4352,17 @@
                 ctx2.lineJoin = 'round';
                 ctx2.strokeStyle = s.color || '#ff6f9a';
                 ctx2.lineWidth = s.width || 4;
-                ctx2.beginPath();
-                ctx2.moveTo(pts[0].x * w, pts[0].y * h);
-                for (let i = 1; i < pts.length; i++) {
-                    ctx2.lineTo(pts[i].x * w, pts[i].y * h);
-                }
-                if (pts.length === 1) {  // single dot
+                if (pts.length === 1) {
                     ctx2.fillStyle = s.color || '#ff6f9a';
                     ctx2.beginPath();
                     ctx2.arc(pts[0].x * w, pts[0].y * h, (s.width || 4) / 2, 0, Math.PI * 2);
                     ctx2.fill();
                 } else {
+                    ctx2.beginPath();
+                    ctx2.moveTo(pts[0].x * w, pts[0].y * h);
+                    for (let i = 1; i < pts.length; i++) {
+                        ctx2.lineTo(pts[i].x * w, pts[i].y * h);
+                    }
                     ctx2.stroke();
                 }
             }
@@ -4347,12 +4374,25 @@
                     y: (t.clientY - rect.top) / rect.height
                 };
             }
+            // Wire ONLY ONCE. We use Pointer Events where supported — they unify mouse
+            // and touch and fire reliably (no synthesized-click weirdness on Safari).
+            // Fallback to mouse+touch for very old browsers.
             function wireDrawInput() {
                 const canvas = drawState.canvas;
+                const usePointer = 'onpointerdown' in window;
+
                 const startDraw = (ev) => {
+                    // ONLY preventDefault on the canvas itself; this is what was breaking
+                    // toolbar clicks before — the old code called preventDefault on a
+                    // *window* mouseup listener, which suppressed the next click on Safari.
                     ev.preventDefault();
                     drawState.drawing = true;
-                    drawState.currentStroke = { points: [getPointFromEvent(ev)], color: drawState.color, width: drawState.width, by: currentViewer };
+                    drawState.currentStroke = {
+                        points: [getPointFromEvent(ev)],
+                        color: drawState.color,
+                        width: drawState.width,
+                        by: currentViewer
+                    };
                     redrawAll();
                 };
                 const moveDraw = (ev) => {
@@ -4361,56 +4401,102 @@
                     drawState.currentStroke.points.push(getPointFromEvent(ev));
                     redrawAll();
                 };
-                const endDraw = async (ev) => {
+                const endDraw = (ev) => {
                     if (!drawState.drawing) return;
-                    ev.preventDefault();
+                    // NO preventDefault here. The previous version called preventDefault
+                    // on window mouseup, which on Safari can suppress the next click on
+                    // *other* elements (toolbar buttons). That was the bug.
                     drawState.drawing = false;
                     const stroke = drawState.currentStroke;
                     drawState.currentStroke = null;
                     if (stroke && stroke.points.length > 0) {
-                        try { await strokesBackend.add(stroke); }
-                        catch (e) { console.warn('save stroke failed', e); }
+                        // Firestore's client SDK includes local writes in its next
+                        // onSnapshot fire immediately (no need for our own optimistic
+                        // push). On failure we let the snapshot reconcile naturally.
+                        strokesBackend.add(stroke).catch(e => {
+                            console.warn('save stroke failed', e);
+                            // Force a redraw so any stale local state is cleared
+                            redrawAll();
+                        });
                     }
                 };
-                canvas.addEventListener('mousedown', startDraw);
-                canvas.addEventListener('mousemove', moveDraw);
-                window.addEventListener('mouseup', endDraw);
-                canvas.addEventListener('mouseleave', endDraw);
-                canvas.addEventListener('touchstart', startDraw, { passive: false });
-                canvas.addEventListener('touchmove',  moveDraw,  { passive: false });
-                canvas.addEventListener('touchend',   endDraw);
-                canvas.addEventListener('touchcancel', endDraw);
+
+                if (usePointer) {
+                    canvas.addEventListener('pointerdown', (ev) => {
+                        if (drawState.drawing) return;  // ignore secondary fingers
+                        drawState._activePointerId = ev.pointerId;
+                        try { canvas.setPointerCapture(ev.pointerId); } catch (_) {}
+                        startDraw(ev);
+                    });
+                    canvas.addEventListener('pointermove', (ev) => {
+                        if (ev.pointerId !== drawState._activePointerId) return;
+                        moveDraw(ev);
+                    });
+                    const stop = (ev) => {
+                        if (ev.pointerId !== drawState._activePointerId) return;
+                        drawState._activePointerId = null;
+                        try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
+                        endDraw(ev);
+                    };
+                    canvas.addEventListener('pointerup', stop);
+                    canvas.addEventListener('pointercancel', stop);
+                    canvas.addEventListener('pointerleave', (ev) => {
+                        // Only end if pointer is up; with pointer capture this rarely fires mid-stroke
+                        if (ev.pointerId === drawState._activePointerId && ev.buttons === 0) stop(ev);
+                    });
+                } else {
+                    // Legacy mouse + touch (older browsers, no Pointer Events)
+                    canvas.addEventListener('mousedown', startDraw);
+                    canvas.addEventListener('mousemove', moveDraw);
+                    canvas.addEventListener('mouseup', endDraw);
+                    canvas.addEventListener('mouseleave', endDraw);
+                    canvas.addEventListener('touchstart', startDraw, { passive: false });
+                    canvas.addEventListener('touchmove', moveDraw, { passive: false });
+                    canvas.addEventListener('touchend', endDraw);
+                    canvas.addEventListener('touchcancel', endDraw);
+                }
+
+                // Safety net: if the user releases the button outside the canvas without
+                // pointer capture working, this still ends the stroke. We don't call
+                // preventDefault here — that's what was killing toolbar clicks before.
+                window.addEventListener('mouseup', (ev) => {
+                    if (drawState.drawing) endDraw(ev);
+                });
             }
+            // Wire ONCE — bind directly to each button, no delegated pane listener.
+            // Delegated listeners on the pane were never cleaned up across renderDraw
+            // calls, causing duplicate confirms/saves.
             function wireDrawToolbar() {
                 const pane = document.getElementById('feed-pane-draw');
-                pane.addEventListener('click', async (e) => {
-                    const c = e.target.closest('.draw-color');
-                    if (c) {
-                        drawState.color = c.getAttribute('data-color');
-                        pane.querySelectorAll('.draw-color').forEach(b => b.classList.toggle('active', b === c));
-                        return;
-                    }
-                    const b = e.target.closest('.draw-brush');
-                    if (b) {
-                        drawState.width = parseInt(b.getAttribute('data-brush'), 10);
-                        pane.querySelectorAll('.draw-brush').forEach(x => x.classList.toggle('active', x === b));
-                        return;
-                    }
-                    if (e.target.closest('#draw-clear')) {
-                        if (!confirm('确定要清空整个画板吗？\n\n（双方都会看到清空）')) return;
-                        try { await strokesBackend.clearAll(); }
-                        catch (err) { alert('清空失败：' + err.message); }
-                        return;
-                    }
-                    if (e.target.closest('#draw-undo')) {
-                        // Find my most recent stroke and remove it
-                        const mine = (strokesBackend.cached || []).filter(s => s.by === currentViewer);
-                        if (mine.length === 0) return;
-                        const last = mine[mine.length - 1];
-                        try { await strokesBackend.removeOne(last.id); }
-                        catch (err) { alert('撤销失败：' + err.message); }
-                        return;
-                    }
+                pane.querySelectorAll('.draw-color').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        drawState.color = btn.getAttribute('data-color');
+                        pane.querySelectorAll('.draw-color').forEach(b => b.classList.toggle('active', b === btn));
+                    });
+                });
+                pane.querySelectorAll('.draw-brush').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        drawState.width = parseInt(btn.getAttribute('data-brush'), 10);
+                        pane.querySelectorAll('.draw-brush').forEach(b => b.classList.toggle('active', b === btn));
+                    });
+                });
+                const clearBtn = document.getElementById('draw-clear');
+                const undoBtn  = document.getElementById('draw-undo');
+                clearBtn.addEventListener('click', async () => {
+                    if (!confirm('确定要清空整个画板吗？\n\n（双方都会看到清空）')) return;
+                    clearBtn.disabled = true;
+                    try { await strokesBackend.clearAll(); }
+                    catch (err) { alert('清空失败：' + (err.message || err)); }
+                    finally { clearBtn.disabled = false; }
+                });
+                undoBtn.addEventListener('click', async () => {
+                    const mine = (strokesBackend.cached || []).filter(s => s.by === currentViewer);
+                    if (mine.length === 0) return;
+                    const last = mine[mine.length - 1];
+                    undoBtn.disabled = true;
+                    try { await strokesBackend.removeOne(last.id); }
+                    catch (err) { alert('撤销失败：' + (err.message || err)); }
+                    finally { undoBtn.disabled = false; }
                 });
             }
             // Subscribe so remote strokes from the partner appear live
@@ -4418,15 +4504,11 @@
                 if (momentsOverlay.classList.contains('open') && activeFeedTab === 'draw') redrawAll();
             });
             // Re-render map when new moments land (only if active)
-            momentsBackend.subscribe(() => {
-                if (momentsOverlay.classList.contains('open') && activeFeedTab === 'map') {
-                    // Just refresh the map silently — full re-render would lose zoom state
-                    // but the simple thing is fine here since user is unlikely to be zoomed in
-                    // while a new moment lands. Keep it simple.
-                    // (Defer to next tick so the cache updates first.)
-                    setTimeout(() => renderMap(), 100);
-                }
-            });
+            // Note: we intentionally do NOT auto re-render the map when momentsBackend
+            // updates. Doing so caused a re-render storm: during initial geocoding we
+            // write lat/lng back to Firestore for each moment (~1/sec), and each write
+            // triggers a snapshot which would trigger another renderMap, which would
+            // tear down the half-finished old map. Map refreshes on next tab click.
 
             // Tab switching
             let activeFeedTab = 'moments';
