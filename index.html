@@ -3041,6 +3041,17 @@
                 CONFIG.mobileScale = w < 500 ? 0.7 : 1.0;
             }
             window.addEventListener('resize', resize);
+            // Keep the draw-board canvas crisp across window resizes / device-rotation.
+            // Debounced so we don't thrash mid-drag.
+            let drawResizeTimer = null;
+            window.addEventListener('resize', () => {
+                if (!drawState.wired) return;
+                clearTimeout(drawResizeTimer);
+                drawResizeTimer = setTimeout(() => {
+                    resizeDrawCanvas();
+                    redrawAll();
+                }, 200);
+            });
             // Helper: convert a client (window) coord to canvas-local coord
             function clientToCanvas(clientX, clientY) {
                 const r = canvas.getBoundingClientRect();
