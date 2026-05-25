@@ -345,7 +345,7 @@
             text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
         }
 
-        /* 3-column symmetric layout: [想念 left] [朋友圈 center] [预留 right] */
+        /* 3-column symmetric layout: [想念 left] [瞬间 center] [预留 right] */
         .moments-content {
             max-width: 1240px;
             margin: 0 auto;
@@ -359,7 +359,7 @@
             min-width: 0;   /* prevent grid blowout when text is long */
         }
 
-        /* Feed tabs (朋友圈 / 心愿单) */
+        /* Feed tabs (瞬间 / 心愿单 / 歌单 / 足迹 / 画板) */
         .feed-tabs {
             display: flex;
             gap: 6px;
@@ -1622,7 +1622,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 60;
+            z-index: 80;  /* above the mini player (z:70) so it doesn't cover the photo */
             padding: 20px;
         }
         #photo-lightbox.open { display: flex; }
@@ -2075,7 +2075,7 @@
         <!-- Heart tap registers a "miss-you" ping; toast shows brief confirmation -->
         <div class="miss-toast" id="miss-toast">想你了，已送达 ❤</div>
         <div id="festival-banner"></div>
-        <button id="moments-entry" aria-label="打开我们的朋友圈">
+        <button id="moments-entry" aria-label="打开我们的瞬间">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 21s-7-4.35-9.5-9.05C.93 9.16 2.4 5 6.2 5c2.1 0 3.5 1.2 4.3 2.4l1.5 2.05 1.5-2.05C14.3 6.2 15.7 5 17.8 5c3.8 0 5.27 4.16 3.7 6.95C19 16.65 12 21 12 21z"
                     fill="#ff6f9a" stroke="rgba(255,255,255,0.85)" stroke-width="1.2" stroke-linejoin="round" />
@@ -2111,9 +2111,9 @@
                             <span class="tab-icon" aria-hidden="true">💝</span>
                             <span class="tab-label">心愿单</span>
                         </button>
-                        <button type="button" class="feed-tab active" data-tab="moments" aria-label="朋友圈" title="朋友圈">
+                        <button type="button" class="feed-tab active" data-tab="moments" aria-label="瞬间" title="瞬间">
                             <span class="tab-icon" aria-hidden="true">📷</span>
-                            <span class="tab-label">朋友圈</span>
+                            <span class="tab-label">瞬间</span>
                         </button>
                         <button type="button" class="feed-tab" data-tab="songs" aria-label="歌单" title="歌单">
                             <span class="tab-icon" aria-hidden="true">🎵</span>
@@ -2144,7 +2144,7 @@
                     </div>
                 </aside>
             </div>
-            <button id="publish-btn" aria-label="发表新动态">+</button>
+            <button id="publish-btn" aria-label="发表新瞬间">+</button>
         </div>
 
         <!-- Floating Bilibili mini player (sibling of #moments so it survives overlay close) -->
@@ -2194,7 +2194,7 @@
         </div>
 
         <!-- Publish modal -->
-        <div id="publish-modal" role="dialog" aria-label="发表新动态">
+        <div id="publish-modal" role="dialog" aria-label="发表新瞬间">
             <div class="publish-card">
                 <h3>写一点心事</h3>
                 <div class="publish-row">
@@ -3424,7 +3424,7 @@
                 }
             }, { passive: true });
 
-            // ===== Moments / 朋友圈 (Firebase via momentsBackend) =====
+            // ===== Moments / 瞬间 (Firebase via momentsBackend) =====
             // Backed by Firestore + Cloud Storage via the momentsBackend abstraction defined above.
             function loadMoments() { return momentsBackend.list(); }
 
@@ -3851,7 +3851,7 @@
                     return;
                 }
                 if (moments.length === 0) {
-                    pane.innerHTML = searchRow + `<div class="search-empty">没有找到包含「${escapeHtml(momentsSearchQuery)}」的朋友圈</div>`;
+                    pane.innerHTML = searchRow + `<div class="search-empty">没有找到包含「${escapeHtml(momentsSearchQuery)}」的瞬间</div>`;
                     return;
                 }
                 pane.innerHTML = searchRow + topExtras + moments.map(m => {
@@ -4273,7 +4273,7 @@
                 fitBoundsIfPossible();
                 const total = mapState.markers.length;
                 document.getElementById('map-stats').textContent = total === 0
-                    ? '还没有定位过的足迹 ✿（下次发朋友圈点 📍 试试）'
+                    ? '还没有定位过的足迹 ✿（下次发瞬间点 📍 试试）'
                     : `${total} 处足迹 ❤`;
 
                 document.getElementById('map-fit-btn').addEventListener('click', fitBoundsIfPossible);
@@ -4766,7 +4766,7 @@
                         input.focus();
                     }
                 } else if (act === 'delete') {
-                    if (!confirm('确定要删除这条朋友圈吗？\n\n删除后无法恢复（包括所有照片）。')) return;
+                    if (!confirm('确定要删除这条瞬间吗？\n\n删除后无法恢复（包括所有照片）。')) return;
                     btn.disabled = true;
                     try {
                         await momentsBackend.deleteMoment(id);
