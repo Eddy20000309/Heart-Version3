@@ -2311,6 +2311,45 @@
             const authIdentityWrap = document.getElementById('auth-identity');
             const VIEWER_KEY_AT_AUTH = 'pourMelodyViewerAs';
 
+            // ----- Local brute-force lockout (5 wrong attempts → 30 min cooldown) -----
+            // Stored in localStorage so a closed-tab attacker can't reset by reload.
+            const LOCKOUT_KEY = 'pourMelodyAuthLockout';
+            const LOCKOUT_THRESHOLD = 5;
+            const LOCKOUT_WINDOW_MS = 10 * 60 * 1000;      // failures in last 10 min count
+            const LOCKOUT_DURATION_MS = 30 * 60 * 1000;    // lock for 30 min
+            function getLockoutState() {
+                try { return JSON.parse(localStorage.getItem(LOCKOUT_KEY) || 'null') || { failures: [], lockedUntil: 0 }; }
+                catch (_) { return { failures: [], lockedUntil: 0 }; }
+            }
+            function saveLockoutState(s) { localStorage.setItem(LOCKOUT_KEY, JSON.stringify(s)); }
+            function lockoutRemainingMs() {
+                const s = getLockoutState();
+                return Math.max(0, s.lockedUntil - Date.now());
+            }
+            function recordAuthFailure() {
+                const s = getLockoutState();
+                const now = Date.now();
+                s.failures = (s.failures || []).filter(t => now - t < LOCKOUT_WINDOW_MS);
+                s.failures.push(now);
+                if (s.failures.length >= LOCKOUT_THRESHOLD) {
+                    s.lockedUntil = now + LOCKOUT_DURATION_MS;
+                    s.failures = [];
+                }
+                saveLockoutState(s);
+            }
+            function clearAuthFailures() { saveLockoutState({ failures: [], lockedUntil: 0 }); }
+
+            // ----- 30-day session timeout -----
+            // Firebase Auth tokens persist forever by default. We layer a "last active"
+            // timestamp on top: if you haven't opened the app in 30 days, force re-login.
+            const LAST_ACTIVE_KEY = 'pourMelodyLastActive';
+            const SESSION_MAX_MS = 30 * 24 * 60 * 60 * 1000;
+            function touchLastActive() { localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now())); }
+            function isSessionExpired() {
+                const last = parseInt(localStorage.getItem(LAST_ACTIVE_KEY) || '0', 10);
+                return last > 0 && (Date.now() - last) > SESSION_MAX_MS;
+            }
+
             // Initialize identity selection from last-used (or default Eddy)
             let pendingIdentity = (localStorage.getItem(VIEWER_KEY_AT_AUTH) === 'Melody') ? 'Melody' : 'Eddy';
             function applyAuthIdentityActive() {
@@ -2337,6 +2376,13 @@
                 setTimeout(() => { authGate.style.display = 'none'; }, 520);
             }
             async function submitAuth() {
+                // Refuse if locally locked out from repeated wrong guesses
+                const remainMs = lockoutRemainingMs();
+                if (remainMs > 0) {
+                    const mins = Math.ceil(remainMs / 60000);
+                    authErrorEl.textContent = `连续错太多，已锁定 ${mins} 分钟（保护你和 Melody）`;
+                    return;
+                }
                 const pwd = authPasswordInput.value;
                 if (!pwd) {
                     authErrorEl.textContent = '请输入密码';
@@ -2352,6 +2398,8 @@
                     await fbAuth.signInWithEmailAndPassword(SHARED_EMAIL, pwd);
                     // Save identity now that login succeeded + sync to moments-side state
                     localStorage.setItem(VIEWER_KEY_AT_AUTH, pendingIdentity);
+                    clearAuthFailures();    // reset the local lockout counter
+                    touchLastActive();      // start the 30-day session window
                     try {
                         currentViewer = pendingIdentity;
                         if (typeof applyViewerLabel === 'function') applyViewerLabel();
@@ -2362,8 +2410,17 @@
                 } catch (e) {
                     console.warn('[auth] sign in failed', e);
                     const code = e.code || '';
-                    if (code.includes('wrong-password') || code.includes('invalid-credential') || code.includes('invalid-login')) {
-                        authErrorEl.textContent = '密码错误，再试一次';
+                    const isBadCreds = code.includes('wrong-password') || code.includes('invalid-credential') || code.includes('invalid-login');
+                    if (isBadCreds) {
+                        // Count this failure toward local lockout
+                        recordAuthFailure();
+                        const s = getLockoutState();
+                        if (s.lockedUntil > Date.now()) {
+                            authErrorEl.textContent = `连续错太多，已锁定 30 分钟`;
+                        } else {
+                            const left = LOCKOUT_THRESHOLD - (s.failures || []).length;
+                            authErrorEl.textContent = `密码错误，再试一次（剩 ${left} 次）`;
+                        }
                     } else if (code.includes('too-many-requests')) {
                         authErrorEl.textContent = '尝试太多次，稍后再来';
                     } else if (code.includes('network')) {
@@ -2379,10 +2436,19 @@
             authPasswordInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') submitAuth();
             });
-            // Listen to auth state — hide gate when signed in, show when signed out
+            // Listen to auth state — hide gate when signed in, show when signed out.
+            // Also enforce the 30-day inactivity rule: if too long since last open,
+            // sign out so the password gate reappears.
             if (fbAuth) {
                 fbAuth.onAuthStateChanged((user) => {
                     if (user && user.uid === SHARED_UID) {
+                        if (isSessionExpired()) {
+                            console.log('[auth] session expired (>30 days inactive) — signing out');
+                            authErrorEl.textContent = '已超过 30 天没打开，重新登录一下吧 ❤';
+                            fbAuth.signOut();
+                            return;
+                        }
+                        touchLastActive();
                         hideAuthGate();
                     } else if (user) {
                         // Some other user signed in (shouldn't happen) — sign out and re-show
@@ -5004,6 +5070,29 @@
             }
 
             // Photo input with client-side compression
+            // Burn a faint "Eddy & Melody" watermark into the bottom-right of each
+            // uploaded photo. Purpose: if a photo URL ever leaks (accidental share,
+            // forwarded screenshot), the watermark signals it's private content.
+            // Drawn at low opacity so it doesn't ruin the photo aesthetically.
+            function drawWatermark(ctx, w, h) {
+                const text = 'Eddy & Melody';
+                // Scale font with image size; cap so massive photos don't get giant text
+                const fontSize = Math.max(14, Math.min(28, Math.round(Math.min(w, h) * 0.025)));
+                ctx.save();
+                ctx.font = `${fontSize}px "Long Cang", "PingFang SC", cursive, sans-serif`;
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+                const pad = Math.max(10, Math.round(fontSize * 0.8));
+                // Soft dark shadow for legibility on bright photos
+                ctx.shadowColor = 'rgba(0,0,0,0.55)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                ctx.fillText(text, w - pad, h - pad);
+                ctx.restore();
+            }
+
             function compressImage(file, maxDim = 1600, quality = 0.85) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -5017,6 +5106,7 @@
                             off.width = w; off.height = h;
                             const ox = off.getContext('2d');
                             ox.drawImage(img, 0, 0, w, h);
+                            drawWatermark(ox, w, h);
                             resolve(off.toDataURL('image/jpeg', quality));
                         };
                         img.onerror = reject;
