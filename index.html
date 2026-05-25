@@ -215,10 +215,12 @@
         }
         #festival-banner.show { opacity: 1; }
 
-        /* ===== Cloud-connecting banner (Firebase slow / unstable network) ===== */
+        /* ===== Cloud-connecting banner (Firebase slow / unstable network) =====
+           Positioned below the festival-banner (top:70px) so they don't overlap
+           if both fire at the same time. */
         #cloud-banner {
             position: absolute;
-            top: 70px;
+            top: 120px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 24;
@@ -2365,10 +2367,12 @@
                 applyAuthIdentityActive();
             });
 
-            function showAuthGate() {
+            function showAuthGate(preserveMessage) {
                 authGate.classList.remove('hidden');
                 authGate.style.display = 'flex';
-                authErrorEl.textContent = '';
+                // Optionally keep the existing message (e.g. "已超过 30 天未使用 …"
+                // set just before forcing sign-out). Default behavior is to clear.
+                if (!preserveMessage) authErrorEl.textContent = '';
                 setTimeout(() => authPasswordInput.focus(), 100);
             }
             function hideAuthGate() {
@@ -2439,12 +2443,14 @@
             // Listen to auth state — hide gate when signed in, show when signed out.
             // Also enforce the 30-day inactivity rule: if too long since last open,
             // sign out so the password gate reappears.
+            let _sessionExpiredFlag = false;  // signal to preserve the error message on next showAuthGate
             if (fbAuth) {
                 fbAuth.onAuthStateChanged((user) => {
                     if (user && user.uid === SHARED_UID) {
                         if (isSessionExpired()) {
                             console.log('[auth] session expired (>30 days inactive) — signing out');
                             authErrorEl.textContent = '已超过 30 天没打开，重新登录一下吧 ❤';
+                            _sessionExpiredFlag = true;
                             fbAuth.signOut();
                             return;
                         }
@@ -2454,7 +2460,9 @@
                         // Some other user signed in (shouldn't happen) — sign out and re-show
                         fbAuth.signOut();
                     } else {
-                        showAuthGate();
+                        // If we just forced sign-out for session expiry, keep that message visible
+                        showAuthGate(_sessionExpiredFlag);
+                        _sessionExpiredFlag = false;
                     }
                 });
             } else {
