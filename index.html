@@ -386,6 +386,22 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .feed-tab .tab-icon {
+            font-size: 16px;
+            line-height: 1;
+            filter: saturate(1.1);
+        }
+        /* On phones (≤ 768px) tabs collapse to icon-only for space.
+           Labels are still in the DOM for accessibility (aria-label on each btn). */
+        @media (max-width: 768px) {
+            .feed-tab .tab-label { display: none; }
+            .feed-tab { padding: 10px 4px; gap: 0; }
+            .feed-tab .tab-icon { font-size: 20px; }
         }
         .feed-tab:hover { color: rgba(255, 200, 230, 0.8); background: rgba(255, 255, 255, 0.04); }
         .feed-tab.active {
@@ -2091,11 +2107,26 @@
                 </aside>
                 <div class="moments-feed" id="moments-feed">
                     <div class="feed-tabs" id="feed-tabs">
-                        <button type="button" class="feed-tab" data-tab="wishes">心愿单</button>
-                        <button type="button" class="feed-tab active" data-tab="moments">朋友圈</button>
-                        <button type="button" class="feed-tab" data-tab="songs">歌单</button>
-                        <button type="button" class="feed-tab" data-tab="map">足迹</button>
-                        <button type="button" class="feed-tab" data-tab="draw">画板</button>
+                        <button type="button" class="feed-tab" data-tab="wishes" aria-label="心愿单" title="心愿单">
+                            <span class="tab-icon" aria-hidden="true">💝</span>
+                            <span class="tab-label">心愿单</span>
+                        </button>
+                        <button type="button" class="feed-tab active" data-tab="moments" aria-label="朋友圈" title="朋友圈">
+                            <span class="tab-icon" aria-hidden="true">📷</span>
+                            <span class="tab-label">朋友圈</span>
+                        </button>
+                        <button type="button" class="feed-tab" data-tab="songs" aria-label="歌单" title="歌单">
+                            <span class="tab-icon" aria-hidden="true">🎵</span>
+                            <span class="tab-label">歌单</span>
+                        </button>
+                        <button type="button" class="feed-tab" data-tab="map" aria-label="足迹" title="足迹">
+                            <span class="tab-icon" aria-hidden="true">📍</span>
+                            <span class="tab-label">足迹</span>
+                        </button>
+                        <button type="button" class="feed-tab" data-tab="draw" aria-label="画板" title="画板">
+                            <span class="tab-icon" aria-hidden="true">🎨</span>
+                            <span class="tab-label">画板</span>
+                        </button>
                     </div>
                     <div id="feed-pane-wishes" class="feed-pane hidden"></div>
                     <div id="feed-pane-moments" class="feed-pane"></div>
