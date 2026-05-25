@@ -1202,26 +1202,6 @@
             }
         }
 
-        /* Placeholder for the right column until Batch 2 fills it with mood thermometer */
-        .sidebar-placeholder {
-            background: linear-gradient(160deg, rgba(180, 130, 200, 0.08), rgba(140, 80, 200, 0.04));
-            border: 1px dashed rgba(255, 180, 210, 0.18);
-            border-radius: 16px;
-            padding: 18px 16px;
-            color: rgba(255, 255, 255, 0.5);
-            font-family: "Long Cang", cursive;
-            font-size: 13px;
-            line-height: 1.7;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        .sidebar-placeholder .ph-title {
-            color: rgba(255, 200, 220, 0.6);
-            font-size: 15px;
-            margin-bottom: 8px;
-            letter-spacing: 2px;
-        }
-
         .sidebar-panel {
             background: linear-gradient(160deg, rgba(255, 140, 180, 0.10), rgba(140, 80, 200, 0.08));
             border: 1px solid rgba(255, 180, 210, 0.18);
@@ -2135,13 +2115,7 @@
                     <div id="feed-pane-draw" class="feed-pane hidden"></div>
                 </div>
                 <aside class="moments-sidebar-right" id="moments-sidebar-right">
-                    <!-- RIGHT column: reserved for future panels (e.g. 心情温度 in Batch 2) -->
-                    <div class="sidebar-placeholder">
-                        <div class="ph-title">✿ 这里待启用</div>
-                        Batch 2 会放<br/>
-                        <b style="color:#ffc4d8">心情温度</b><br/>
-                        或你想加的功能
-                    </div>
+                    <!-- RIGHT column: filled in by renderMoodPanel() once moods data loads -->
                 </aside>
             </div>
             <button id="publish-btn" aria-label="发表新瞬间">+</button>
@@ -2792,21 +2766,6 @@
                 const s = String(input).trim();
                 const m = s.match(/BV[a-zA-Z0-9]{8,12}/);
                 return m ? m[0] : null;
-            }
-
-            // Best-effort fetch of the video title via Bilibili's web API.
-            // CORS-restricted on www.bilibili.com but the api.* subdomain sometimes
-            // allows simple GETs; if it fails we just fall back to the BV id as title.
-            async function fetchBilibiliTitle(bvid) {
-                try {
-                    const url = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
-                    const res = await fetch(url, { mode: 'cors' });
-                    if (!res.ok) return null;
-                    const json = await res.json();
-                    return (json && json.data && json.data.title) ? json.data.title : null;
-                } catch (e) {
-                    return null;  // CORS or network — caller decides fallback
-                }
             }
 
             // ===== Festival theme registry & date detection =====
@@ -3467,7 +3426,6 @@
 
             let pendingPhotos = []; // {dataUrl, name}
             let pendingLatLng = null; // {lat, lng} captured from the 📍 button
-            let pendingLocation = ''; // string set by manual input or auto-fetch
             const VIEWER_KEY = 'pourMelodyViewerAs';
             function loadViewer() {
                 const v = localStorage.getItem(VIEWER_KEY);
@@ -4944,7 +4902,6 @@
                 textInput.value = '';
                 locationInput.value = '';
                 pendingPhotos = [];
-                pendingLocation = '';
                 pendingLatLng = null;
                 renderPhotoPreviews();
                 publishStatus.textContent = '';
