@@ -3378,8 +3378,9 @@
                     if (Math.abs(p.x) > maxAX) maxAX = Math.abs(p.x);
                     if (Math.abs(p.y) > maxAY) maxAY = Math.abs(p.y);
                 }
-                // Fit the wide line to the heart footprint (width-limited on a one-liner)
-                const fit = Math.min(220 / maxAX, 150 / maxAY);
+                // Fit the wide line a touch wider than the heart so the letters are big
+                // enough to read individually (width-limited on a one-liner).
+                const fit = Math.min(245 / maxAX, 160 / maxAY);
                 const out = [];
                 for (let i = 0; i < count; i++) {
                     const p = pts[Math.floor(Math.random() * pts.length)];
@@ -5379,6 +5380,14 @@
                 // Letter reveal: pause when morphing (don't fight for control)
                 const letterReveal = (state.currentStep >= 1 && morphMix === 0) ? 0.32 : 0;
 
+                // While morphing into the names, fade the 3D spin toward "facing the
+                // viewer" so the text lays flat (full width, no skew/compression) and
+                // stays crisp. At morphMix=0 these equal the live cosR/sinR.
+                const cosRm = cosR + (1 - cosR) * morphMix;
+                const sinRm = sinR * (1 - morphMix);
+                // Also flatten depth so the text doesn't blur in z while held.
+                const zMix = 1 - morphMix;
+
                 // Build render list (with z for sorting)
                 const renderList = [];
                 for (let i = 0; i < heartPoints.length; i++) {
@@ -5400,8 +5409,9 @@
                         basePx = lerp(basePx, p.morphX, morphMix);
                         basePy = lerp(basePy, p.morphY, morphMix);
                     }
-                    const rx = basePx * cosR - p.z * sinR;
-                    const rz = basePx * sinR + p.z * cosR;
+                    const pz = p.z * zMix;  // collapse depth as the names form
+                    const rx = basePx * cosRm - pz * sinRm;
+                    const rz = basePx * sinRm + pz * cosRm;
                     const ry = basePy;
                     const fx = rx * beat;
                     const fy = ry * beat;
