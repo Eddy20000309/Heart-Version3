@@ -3391,15 +3391,15 @@
                 // enough to read individually (width-limited on a one-liner).
                 const fit = Math.min(245 / maxAX, 160 / maxAY);
 
-                const pick = (pool, fallback) => {
+                const pick = (pool, fallback, isHeart) => {
                     const src = pool.length ? pool : fallback;
                     const p = src[Math.floor(Math.random() * src.length)];
-                    return { x: p.x * fit, y: p.y * fit };
+                    return { x: p.x * fit, y: p.y * fit, isHeart };
                 };
-                const heartCount = Math.round(count * 0.16);  // ~16% → dense, solid heart
+                const heartCount = Math.round(count * 0.20);  // ~20% reserved for the heart
                 const out = [];
-                for (let i = 0; i < heartCount; i++) out.push(pick(heartPts, textPts));
-                for (let i = heartCount; i < count; i++) out.push(pick(textPts, heartPts));
+                for (let i = 0; i < heartCount; i++) out.push(pick(heartPts, textPts, true));
+                for (let i = heartCount; i < count; i++) out.push(pick(textPts, heartPts, false));
                 return out;
             }
 
@@ -3409,6 +3409,7 @@
                 for (let i = 0; i < state.heartPoints.length; i++) {
                     state.heartPoints[i].morphX = pts[i].x;
                     state.heartPoints[i].morphY = pts[i].y;
+                    state.heartPoints[i].morphIsHeart = pts[i].isHeart;
                 }
                 state.morph.hasTargets = true;
                 return true;
@@ -5439,6 +5440,7 @@
                             alpha: Math.min(1, scale * 0.45 + 0.6 + brightBoost),
                             colorIdx: p.colorIdx,
                             isLetter: p.isLetter,
+                            morphIsHeart: p.morphIsHeart,
                             fz
                         });
                     }
@@ -5448,15 +5450,22 @@
                 // Use additive 'lighter' compositing so overlapping particles glow brighter.
                 // With the central-axis thinning we did at generate-time, the streak risk is gone.
                 ctx.globalCompositeOperation = 'lighter';
-                // While morphing into the names, keep the heart's own pink sprite (so the
-                // names match the heart's colour) and SHRINK each dot (down to ~0.5×).
-                // Small pink dots packed into a single horizontal line stay crisp.
+                // While morphing into the names (heart's own pink sprite, so names match
+                // the heart colour):
+                //   • name dots SHRINK (~0.5×) → crisp letterforms
+                //   • the connector-heart dots GROW (~2×) so they heavily overlap and
+                //     fuse into one COMPLETELY SOLID filled heart.
                 const morphing = morphMix > 0.04;
                 for (let i = 0; i < renderList.length; i++) {
                     const p = renderList[i];
                     const sprite = (p.isLetter && letterReveal > 0) ? letterSprite : sprites[p.colorIdx];
                     if (!sprite) continue;
-                    const drawSize = morphing ? p.size * (1 - morphMix * 0.5) : p.size;
+                    let drawSize = p.size;
+                    if (morphing) {
+                        drawSize = p.morphIsHeart
+                            ? p.size * (1 + morphMix * 1.4)   // grow → fuse into a solid heart
+                            : p.size * (1 - morphMix * 0.5);  // shrink → crisp letters
+                    }
                     ctx.globalAlpha = Math.min(1, p.alpha * 0.7);
                     ctx.drawImage(sprite, p.x - drawSize, p.y - drawSize, drawSize * 2, drawSize * 2);
                 }
