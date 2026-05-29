@@ -3030,7 +3030,7 @@
                 mouseInfluence: { dx: 0, dy: 0, brightness: 0 }, // smoothed gaze + glow
                 lastTrailTime: 0,
                 lastTapTime: 0,
-                morph: { phase: 'idle', progress: 0, hasTargets: false } // idle | forward | hold | backward
+                morph: { phase: 'idle', progress: 0 } // idle | forward | hold | backward
             };
 
             const HEART_RADIUS_X = 220;  // approximate elliptical bounding box for hit-test
@@ -5305,7 +5305,7 @@
 
                 // Update morph timeline
                 let morphMix = 0; // 0 = original heart, 1 = full text shape
-                if (state.morph.phase !== 'idle' && state.morph.hasTargets) {
+                if (state.morph.phase !== 'idle') {
                     state.morph.progress += dt;
                     if (state.morph.phase === 'forward') {
                         const t = Math.min(1, state.morph.progress / 1.6);
