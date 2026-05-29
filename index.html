@@ -3324,17 +3324,43 @@
                     });
                 }
             }
-            // ===== "Melody" text morph =====
-            function sampleTextPoints(text, count, fontSpec) {
-                const W = 720, H = 220;
+            // ===== "Eddy ♡ Melody" text morph =====
+            // Draws a solid heart outline onto a 2D context (used as the connector
+            // between the two names). Uses the same parametric heart curve as the
+            // particle field so the little heart matches the big one's shape.
+            function fillHeartShape(ctx, cx, cy, scale) {
+                ctx.beginPath();
+                for (let t = 0; t <= Math.PI * 2 + 0.04; t += 0.03) {
+                    const hx = 16 * Math.pow(Math.sin(t), 3);
+                    const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                    const px = cx + hx * scale;
+                    const py = cy + hy * scale;  // canvas y grows downward; hy>0 = bottom tip
+                    if (t === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Rasterize the stacked composition "Eddy / ♡ / Melody", sample `count`
+            // particle targets from the lit pixels, then uniformly scale the whole
+            // composition so it fits within roughly the heart's own footprint
+            // (≈ ±210 wide, ±200 tall in heart-local units). Because the heart is
+            // drawn at fixed local coordinates, fitting to the heart's footprint means
+            // the text fits any screen the heart already fits — desktop and mobile alike.
+            function sampleNamesComposition(count) {
+                const W = 640, H = 460;
                 const off = document.createElement('canvas');
                 off.width = W; off.height = H;
                 const ox = off.getContext('2d');
                 ox.fillStyle = '#fff';
-                ox.font = fontSpec;
                 ox.textAlign = 'center';
                 ox.textBaseline = 'middle';
-                ox.fillText(text, W / 2, H / 2);
+                ox.font = 'italic bold 120px "Long Cang", cursive, serif';
+                ox.fillText('Eddy', W / 2, H * 0.20);
+                ox.fillText('Melody', W / 2, H * 0.80);
+                fillHeartShape(ox, W / 2, H * 0.50, 2.1);  // ~70px connector heart
+
                 const data = ox.getImageData(0, 0, W, H).data;
                 const pts = [];
                 for (let y = 0; y < H; y += 2) {
@@ -3345,15 +3371,26 @@
                     }
                 }
                 if (pts.length === 0) return [];
+
+                // Find bounds, then scale to fit the heart-sized footprint
+                let maxAX = 1, maxAY = 1;
+                for (const p of pts) {
+                    if (Math.abs(p.x) > maxAX) maxAX = Math.abs(p.x);
+                    if (Math.abs(p.y) > maxAY) maxAY = Math.abs(p.y);
+                }
+                const fit = Math.min(210 / maxAX, 200 / maxAY);
+
                 const out = [];
                 for (let i = 0; i < count; i++) {
-                    out.push(pts[Math.floor(Math.random() * pts.length)]);
+                    const p = pts[Math.floor(Math.random() * pts.length)];
+                    out.push({ x: p.x * fit, y: p.y * fit });
                 }
                 return out;
             }
+
             function prepareMorphTargets() {
-                // Sampled in screen-local heart coordinates (offset added in render)
-                const pts = sampleTextPoints('Melody', state.heartPoints.length, 'italic bold 140px "Long Cang", cursive, serif');
+                // Sampled in heart-local coordinates (heart center offset added in render)
+                const pts = sampleNamesComposition(state.heartPoints.length);
                 if (pts.length === 0) return false;
                 for (let i = 0; i < state.heartPoints.length; i++) {
                     state.heartPoints[i].morphX = pts[i].x;
