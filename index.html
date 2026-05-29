@@ -3362,30 +3362,44 @@
                 let x = (W - totalW) / 2;
                 ox.textAlign = 'left';
                 ox.fillText('Eddy', x, midY);            x += wEddy + padX;
-                fillHeartShape(ox, x + heartW / 2, midY, 2.2);  x += heartW + padX;
+                const heartCx = x + heartW / 2;
+                fillHeartShape(ox, heartCx, midY, 2.2);  x += heartW + padX;
                 ox.fillText('Melody', x, midY);
 
+                // Split lit pixels into the connector heart vs the two names. The heart
+                // is small, so a uniform sample leaves it sparse; instead we reserve a
+                // fixed share of particles for it so it reads as a solid filled heart.
                 const data = ox.getImageData(0, 0, W, H).data;
-                const pts = [];
+                const heartHalf = heartW / 2 + 8;
+                const textPts = [], heartPts = [];
                 for (let y = 0; y < H; y += 2) {
                     for (let x2 = 0; x2 < W; x2 += 2) {
-                        if (data[(y * W + x2) * 4 + 3] > 128) pts.push({ x: x2 - W / 2, y: y - H / 2 });
+                        if (data[(y * W + x2) * 4 + 3] > 128) {
+                            const pt = { x: x2 - W / 2, y: y - H / 2 };
+                            if (Math.abs(x2 - heartCx) <= heartHalf) heartPts.push(pt);
+                            else textPts.push(pt);
+                        }
                     }
                 }
-                if (pts.length === 0) return [];
+                if (textPts.length === 0 && heartPts.length === 0) return [];
                 let maxAX = 1, maxAY = 1;
-                for (const p of pts) {
+                for (const p of textPts) {
                     if (Math.abs(p.x) > maxAX) maxAX = Math.abs(p.x);
                     if (Math.abs(p.y) > maxAY) maxAY = Math.abs(p.y);
                 }
                 // Fit the wide line a touch wider than the heart so the letters are big
                 // enough to read individually (width-limited on a one-liner).
                 const fit = Math.min(245 / maxAX, 160 / maxAY);
+
+                const pick = (pool, fallback) => {
+                    const src = pool.length ? pool : fallback;
+                    const p = src[Math.floor(Math.random() * src.length)];
+                    return { x: p.x * fit, y: p.y * fit };
+                };
+                const heartCount = Math.round(count * 0.16);  // ~16% → dense, solid heart
                 const out = [];
-                for (let i = 0; i < count; i++) {
-                    const p = pts[Math.floor(Math.random() * pts.length)];
-                    out.push({ x: p.x * fit, y: p.y * fit });
-                }
+                for (let i = 0; i < heartCount; i++) out.push(pick(heartPts, textPts));
+                for (let i = heartCount; i < count; i++) out.push(pick(textPts, heartPts));
                 return out;
             }
 
