@@ -3030,7 +3030,7 @@
                 mouseInfluence: { dx: 0, dy: 0, brightness: 0 }, // smoothed gaze + glow
                 lastTrailTime: 0,
                 lastTapTime: 0,
-                morph: { phase: 'idle', progress: 0 } // idle | forward | hold | backward
+                morph: { phase: 'idle', progress: 0, hasTargets: false } // idle | forward | hold | backward
             };
 
             const HEART_RADIUS_X = 220;  // approximate elliptical bounding box for hit-test
@@ -3342,11 +3342,67 @@
                 ctx.fill();
             }
 
-            // Double-tapping the heart no longer tries to spell the names out of
-            // particles — that fought the heart's 3D spin and never read cleanly.
-            // Instead the heart breathes out into a soft glow and a crisp text layer
-            // (drawn in loop()) fades in. We just drive the morph timeline here.
+            // Rasterize a HORIZONTAL "Eddy ♡ Melody" on one line, sample `count`
+            // particle targets from the lit pixels, then scale to fit the heart's
+            // footprint. One line concentrates all particles into a single dense band
+            // (≈2× the density of a stacked layout) so the morphed names read clearly.
+            function sampleNamesComposition(count) {
+                const W = 1100, H = 240;
+                const off = document.createElement('canvas');
+                off.width = W; off.height = H;
+                const ox = off.getContext('2d');
+                ox.fillStyle = '#fff';
+                ox.textBaseline = 'middle';
+                ox.font = 'italic bold 110px "Long Cang", cursive, serif';
+                const midY = H / 2;
+                const wEddy = ox.measureText('Eddy').width;
+                const wMel  = ox.measureText('Melody').width;
+                const heartW = 78, padX = 26;
+                const totalW = wEddy + padX + heartW + padX + wMel;
+                let x = (W - totalW) / 2;
+                ox.textAlign = 'left';
+                ox.fillText('Eddy', x, midY);            x += wEddy + padX;
+                fillHeartShape(ox, x + heartW / 2, midY, 2.2);  x += heartW + padX;
+                ox.fillText('Melody', x, midY);
+
+                const data = ox.getImageData(0, 0, W, H).data;
+                const pts = [];
+                for (let y = 0; y < H; y += 2) {
+                    for (let x2 = 0; x2 < W; x2 += 2) {
+                        if (data[(y * W + x2) * 4 + 3] > 128) pts.push({ x: x2 - W / 2, y: y - H / 2 });
+                    }
+                }
+                if (pts.length === 0) return [];
+                let maxAX = 1, maxAY = 1;
+                for (const p of pts) {
+                    if (Math.abs(p.x) > maxAX) maxAX = Math.abs(p.x);
+                    if (Math.abs(p.y) > maxAY) maxAY = Math.abs(p.y);
+                }
+                // Fit the wide line to the heart footprint (width-limited on a one-liner)
+                const fit = Math.min(220 / maxAX, 150 / maxAY);
+                const out = [];
+                for (let i = 0; i < count; i++) {
+                    const p = pts[Math.floor(Math.random() * pts.length)];
+                    out.push({ x: p.x * fit, y: p.y * fit });
+                }
+                return out;
+            }
+
+            function prepareMorphTargets() {
+                const pts = sampleNamesComposition(state.heartPoints.length);
+                if (pts.length === 0) return false;
+                for (let i = 0; i < state.heartPoints.length; i++) {
+                    state.heartPoints[i].morphX = pts[i].x;
+                    state.heartPoints[i].morphY = pts[i].y;
+                }
+                state.morph.hasTargets = true;
+                return true;
+            }
+
+            // Double-tap → particles fly from the heart and reassemble into the two
+            // horizontal names. Targets are sampled fresh each trigger.
             function triggerMorph() {
+                if (!state.morph.hasTargets && !prepareMorphTargets()) return;
                 state.morph.phase = 'forward';
                 state.morph.progress = 0;
             }
@@ -5339,13 +5395,10 @@
                         basePx = lerp(basePx, p.letterX, letterReveal);
                         basePy = lerp(basePy, p.letterY, letterReveal);
                     }
-                    // During the name reveal, the heart no longer tries to spell the
-                    // names with particles (that fought the 3D rotation and the crisp
-                    // text overlay). Instead it gently breathes outward into a soft glow
-                    // cloud behind the text.
+                    // Double-tap morph: particles fly to the horizontal name positions.
                     if (morphMix > 0) {
-                        basePx *= 1 + morphMix * 0.18;
-                        basePy *= 1 + morphMix * 0.18;
+                        basePx = lerp(basePx, p.morphX, morphMix);
+                        basePy = lerp(basePy, p.morphY, morphMix);
                     }
                     const rx = basePx * cosR - p.z * sinR;
                     const rz = basePx * sinR + p.z * cosR;
@@ -5371,50 +5424,20 @@
                 // Use additive 'lighter' compositing so overlapping particles glow brighter.
                 // With the central-axis thinning we did at generate-time, the streak risk is gone.
                 ctx.globalCompositeOperation = 'lighter';
-                // Dim the heart while the names are showing so the crisp text on top pops.
-                const morphDim = 1 - morphMix * 0.45;
+                // While morphing into the names, swap to the bright whitish sprite and
+                // SHRINK each dot (down to ~0.5×). Small white dots packed into a single
+                // horizontal line keep the letterforms crisp instead of blobbing.
+                const morphing = morphMix > 0.04;
                 for (let i = 0; i < renderList.length; i++) {
                     const p = renderList[i];
-                    const sprite = (p.isLetter && letterReveal > 0) ? letterSprite : sprites[p.colorIdx];
+                    const sprite = ((p.isLetter && letterReveal > 0) || morphing) ? letterSprite : sprites[p.colorIdx];
                     if (!sprite) continue;
-                    ctx.globalAlpha = Math.min(1, p.alpha * 0.7 * morphDim);
-                    ctx.drawImage(sprite, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+                    const drawSize = morphing ? p.size * (1 - morphMix * 0.5) : p.size;
+                    ctx.globalAlpha = Math.min(1, p.alpha * 0.7);
+                    ctx.drawImage(sprite, p.x - drawSize, p.y - drawSize, drawSize * 2, drawSize * 2);
                 }
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.globalAlpha = 1;
-
-                // ----- Crisp name overlay during the double-tap morph -----
-                // The particles converge into a soft glow behind; this real text on top
-                // guarantees "Eddy ♡ Melody" is always sharp and readable on any background.
-                // Alpha tracks morphMix so it fades in/out with the particle motion.
-                if (morphMix > 0.02) {
-                    const nameAlpha = Math.min(1, morphMix * 1.15);
-                    const nameFont = Math.max(34, Math.round(64 * CONFIG.mobileScale));
-                    const gap = nameFont * 1.5;
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.globalAlpha = nameAlpha;
-                    // Dark soft halo first (lifts text off bright photo backgrounds),
-                    // then the bright text + pink glow on top.
-                    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-                    ctx.shadowBlur = 14;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `italic bold ${nameFont}px "Long Cang", cursive, serif`;
-                    ctx.fillText('Eddy', cx, cy - gap);
-                    ctx.fillText('Melody', cx, cy + gap);
-                    // Pink glow pass over the same text for warmth
-                    ctx.shadowColor = `hsla(${state.themeBlend.hueEdge.toFixed(0)}, 90%, 62%, 0.9)`;
-                    ctx.shadowBlur = 22;
-                    ctx.fillText('Eddy', cx, cy - gap);
-                    ctx.fillText('Melody', cx, cy + gap);
-                    // Middle connector heart (same parametric shape as the big heart)
-                    ctx.shadowColor = `hsla(${state.themeBlend.hueEdge.toFixed(0)}, 90%, 60%, 0.95)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = '#ff6f9a';
-                    fillHeartShape(ctx, cx, cy, Math.max(0.8, nameFont / 40));
-                    ctx.restore();
-                }
 
                 // ----- Ripples (expanding rings from heart taps) -----
                 for (let i = state.ripples.length - 1; i >= 0; i--) {
