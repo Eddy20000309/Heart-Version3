@@ -2990,7 +2990,7 @@
 
             // ===== CONFIG =====
             const CONFIG = {
-                particleCount: 2600,
+                particleCount: 3800,
                 petalCount: 120,
                 fov: 600,
                 mobileScale: 1.0,
@@ -5406,10 +5406,13 @@
                     const scale = CONFIG.fov / (CONFIG.fov - fz);
                     if (scale > 0 && scale < 5) {
                         renderList.push({
+                            // During the name morph, fatten the dots (×up to 1.7) and
+                            // brighten them so "Eddy ♡ Melody" reads boldly even over a
+                            // busy photo background.
                             x: cx + fx * scale,
                             y: cy + fy * scale,
-                            size: Math.max(1.4, scale * 2.7 * CONFIG.mobileScale),
-                            alpha: Math.min(1, scale * 0.45 + 0.6 + brightBoost),
+                            size: Math.max(1.4, scale * 2.7 * CONFIG.mobileScale * (1 + morphMix * 0.7)),
+                            alpha: Math.min(1, scale * 0.45 + 0.6 + brightBoost + morphMix * 0.35),
                             colorIdx: p.colorIdx,
                             isLetter: p.isLetter,
                             fz
@@ -5421,11 +5424,14 @@
                 // Use additive 'lighter' compositing so overlapping particles glow brighter.
                 // With the central-axis thinning we did at generate-time, the streak risk is gone.
                 ctx.globalCompositeOperation = 'lighter';
+                // When morphed into the names, swap to the bright whitish sprite for
+                // higher contrast against any background, and dim less than usual.
+                const morphLit = morphMix > 0.15;
                 for (let i = 0; i < renderList.length; i++) {
                     const p = renderList[i];
-                    const sprite = (p.isLetter && letterReveal > 0) ? letterSprite : sprites[p.colorIdx];
+                    const sprite = ((p.isLetter && letterReveal > 0) || morphLit) ? letterSprite : sprites[p.colorIdx];
                     if (!sprite) continue;
-                    ctx.globalAlpha = Math.min(1, p.alpha * 0.7);
+                    ctx.globalAlpha = Math.min(1, p.alpha * (morphLit ? 0.95 : 0.7));
                     ctx.drawImage(sprite, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
                 }
                 ctx.globalCompositeOperation = 'source-over';
