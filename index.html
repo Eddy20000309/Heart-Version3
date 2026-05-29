@@ -5434,13 +5434,13 @@
                 // Use additive 'lighter' compositing so overlapping particles glow brighter.
                 // With the central-axis thinning we did at generate-time, the streak risk is gone.
                 ctx.globalCompositeOperation = 'lighter';
-                // While morphing into the names, swap to the bright whitish sprite and
-                // SHRINK each dot (down to ~0.5×). Small white dots packed into a single
-                // horizontal line keep the letterforms crisp instead of blobbing.
+                // While morphing into the names, keep the heart's own pink sprite (so the
+                // names match the heart's colour) and SHRINK each dot (down to ~0.5×).
+                // Small pink dots packed into a single horizontal line stay crisp.
                 const morphing = morphMix > 0.04;
                 for (let i = 0; i < renderList.length; i++) {
                     const p = renderList[i];
-                    const sprite = ((p.isLetter && letterReveal > 0) || morphing) ? letterSprite : sprites[p.colorIdx];
+                    const sprite = (p.isLetter && letterReveal > 0) ? letterSprite : sprites[p.colorIdx];
                     if (!sprite) continue;
                     const drawSize = morphing ? p.size * (1 - morphMix * 0.5) : p.size;
                     ctx.globalAlpha = Math.min(1, p.alpha * 0.7);
